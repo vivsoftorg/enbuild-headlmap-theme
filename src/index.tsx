@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { registerAppBarAction, registerPluginSettings } from '@kinvolk/headlamp-plugin/lib';
+import { registerPluginSettings, ConfigStore } from '@kinvolk/headlamp-plugin/lib';
 
 import {
   Button,
@@ -35,14 +35,20 @@ const fontOptions = [
   'Lato',
 ];
 
-const injectThemeStyle = () => {
+interface ThemeOptions {
+  primaryColor?: string;
+  secondaryColor?: string;
+  font?: string;
+}
+
+const injectThemeStyle = ({ primaryColor, secondaryColor, font }: ThemeOptions) => {
   const style = document.createElement('style');
   style.id = 'custom-theme-style';
   style.innerHTML = `
     :root {
-      --primary-color: ${localStorage.getItem('primaryColor') || defaultPrimary};
-      --secondary-color: ${localStorage.getItem('secondaryColor') || defaultSecondary};
-      --font-family: '${localStorage.getItem('font') || defaultFont}',Inter sans-serif;
+      --primary-color: ${primaryColor || defaultPrimary};
+      --secondary-color: ${secondaryColor || defaultSecondary};
+      --font-family: '${font || defaultFont}',Inter sans-serif;
     }
     body {
       font-family: var(--font-family) !important;
@@ -81,122 +87,95 @@ const injectThemeStyle = () => {
   document.head.appendChild(style);
 };
 
-const ThemeCustomizer = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [primaryColor, setPrimaryColor] = useState(
-    localStorage.getItem('primaryColor') || defaultPrimary
-  );
-  const [secondaryColor, setSecondaryColor] = useState(
-    localStorage.getItem('secondaryColor') || defaultSecondary
-  );
-  const [font, setFont] = useState(localStorage.getItem('font') || defaultFont);
+const store = new ConfigStore('enbuild-customiser-theme');
 
-  useEffect(() => {
-    injectThemeStyle();
-  }, [primaryColor, secondaryColor, font]);
+const ThemeCustomizer = () => {
+  const config = store.get() || {};
+  const [primaryColor, setPrimaryColor] = useState(config.primaryColor || defaultPrimary);
+  const [secondaryColor, setSecondaryColor] = useState(config.secondaryColor || defaultSecondary);
+  const [font, setFont] = useState(config.font || defaultFont);
 
   const savePreferences = () => {
-    localStorage.setItem('primaryColor', primaryColor);
-    localStorage.setItem('secondaryColor', secondaryColor);
-    localStorage.setItem('font', font);
-    injectThemeStyle();
-    setIsOpen(false);
+    const newConfig = {
+      primaryColor,
+      secondaryColor,
+      font,
+    };
+    store.set(newConfig);
+    injectThemeStyle({ primaryColor, secondaryColor, font });
+  };
+
+  const resetPreferences = () => {
+    setPrimaryColor(defaultPrimary);
+    setSecondaryColor(defaultSecondary);
+    setFont(defaultFont);
+    store.set({
+      primaryColor: defaultPrimary,
+      secondaryColor: defaultSecondary,
+      font: defaultFont,
+    });
+    injectThemeStyle({
+      primaryColor: defaultPrimary,
+      secondaryColor: defaultSecondary,
+      font: defaultFont,
+    });
   };
 
   return (
-    <div>
-      <Button
+    <Box width="50%" style={{ paddingTop: '8vh' }}>
+      <Typography variant="h6" gutterBottom>
+        UI Theme Customizer
+      </Typography>
+
+      <TextField
+        type="color"
+        label="Primary Color"
+        value={primaryColor}
+        onChange={e => setPrimaryColor(e.target.value)}
+        fullWidth
         variant="outlined"
-        onClick={e => setIsOpen(e.currentTarget)}
-        style={{
-          borderColor: 'var(--primary-color)',
-          color: 'var(--primary-color)',
-          textTransform: 'none',
-        }}
-      >
-        🎨 Customise Enbuild Theme ▼
-      </Button>
+        margin="dense"
+        InputLabelProps={{ shrink: true }}
+      />
 
-      <Menu
-        anchorEl={isOpen}
-        open={Boolean(isOpen)}
-        onClose={() => setIsOpen(null)}
-        PaperProps={{
-          style: {
-            width: 300,
-            padding: '16px',
-          },
-        }}
-      >
-        <Typography variant="h6" gutterBottom>
-          UI Theme Customizer
-        </Typography>
+      <TextField
+        type="color"
+        label="Secondary Color"
+        value={secondaryColor}
+        onChange={e => setSecondaryColor(e.target.value)}
+        fullWidth
+        variant="outlined"
+        margin="dense"
+        InputLabelProps={{ shrink: true }}
+      />
 
-        <MenuItem disableRipple>
-          <TextField
-            type="color"
-            label="Primary Color"
-            value={primaryColor}
-            onChange={e => setPrimaryColor(e.target.value)}
-            fullWidth
-            variant="outlined"
-            margin="dense"
-            InputLabelProps={{ shrink: true }}
-          />
-        </MenuItem>
+      <FormControl fullWidth margin="dense">
+        <InputLabel id="font-select-label">Font Style</InputLabel>
+        <Select
+          labelId="font-select-label"
+          value={font}
+          onChange={e => setFont(e.target.value)}
+          label="Font Style"
+          style={{ fontFamily: font }}
+        >
+          {fontOptions.map(f => (
+            <MenuItem key={f} value={f} style={{ fontFamily: f }}>
+              {f}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
 
-        <MenuItem disableRipple>
-          <TextField
-            type="color"
-            label="Secondary Color"
-            value={secondaryColor}
-            onChange={e => setSecondaryColor(e.target.value)}
-            fullWidth
-            variant="outlined"
-            margin="dense"
-            InputLabelProps={{ shrink: true }}
-          />
-        </MenuItem>
-
-        <MenuItem disableRipple>
-          <FormControl fullWidth margin="dense">
-            <InputLabel id="font-select-label">Font Style</InputLabel>
-            <Select
-              labelId="font-select-label"
-              value={font}
-              onChange={e => setFont(e.target.value)}
-              label="Font Style"
-              style={{ fontFamily: font }}
-            >
-              {fontOptions.map(f => (
-                <MenuItem key={f} value={f} style={{ fontFamily: f }}>
-                  {f}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </MenuItem>
-
-        <Box mt={2} px={1}>
-          <Button
-            onClick={savePreferences}
-            variant="contained"
-            fullWidth
-            style={{
-              backgroundColor: primaryColor,
-              color: '#fff',
-              fontWeight: 'bold',
-            }}
-          >
-            Save
-          </Button>
-        </Box>
-      </Menu>
-    </div>
+      <Box mt={2} display="flex" justifyContent="space-between" gap={2}>
+        <Button onClick={savePreferences} variant="contained">
+          Save
+        </Button>
+        <Button onClick={resetPreferences} variant="outlined">
+          Reset
+        </Button>
+      </Box>
+    </Box>
   );
 };
 
-injectThemeStyle();
-
-// Register Dropdown Theme Customizer in AppBar
-registerAppBarAction(<ThemeCustomizer />);
+registerPluginSettings('enbuild-headlamp-theme', ThemeCustomizer, false);
