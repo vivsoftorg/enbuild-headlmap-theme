@@ -1,14 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { registerAppBarAction } from '@kinvolk/headlamp-plugin/lib';
+import { registerAppBarAction, registerPluginSettings } from '@kinvolk/headlamp-plugin/lib';
+
+import {
+  Button,
+  Menu,
+  MenuItem,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  TextField,
+  Box,
+} from '@mui/material';
 
 const defaultPrimary = '#05A2C2';
-const defaultSecondary = ' #ff9800';
+const defaultSecondary = '';
 const defaultFont = 'Inter sans-serif';
 
 const fontOptions = [
-  'Inter', 'Arial', 'Roboto', 'Courier New', 'Georgia',
-  'Monospace', 'Verdana', 'Tahoma', 'Times New Roman', 'Trebuchet MS',
-  'Lucida Console', 'Comic Sans MS', 'PT Sans', 'Open Sans', 'Lato'
+  'Inter',
+  'Arial',
+  'Roboto',
+  'Courier New',
+  'Georgia',
+  'Monospace',
+  'Verdana',
+  'Tahoma',
+  'Times New Roman',
+  'Trebuchet MS',
+  'Lucida Console',
+  'Comic Sans MS',
+  'PT Sans',
+  'Open Sans',
+  'Lato',
 ];
 
 const injectThemeStyle = () => {
@@ -45,6 +69,9 @@ const injectThemeStyle = () => {
       font-weight: bold !important;
       border: 1px solid var(--primary-color) !important;
     }
+    .MuiListItemButton-root.Mui-selected::before {
+      background: var(--primary-color) !important;
+    }
     .MuiListItemButton-root.Mui-selected svg {
       color: var(--primary-color) !important;
     }
@@ -56,8 +83,12 @@ const injectThemeStyle = () => {
 
 const ThemeCustomizer = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [primaryColor, setPrimaryColor] = useState(localStorage.getItem('primaryColor') || defaultPrimary);
-  const [secondaryColor, setSecondaryColor] = useState(localStorage.getItem('secondaryColor') || defaultSecondary);
+  const [primaryColor, setPrimaryColor] = useState(
+    localStorage.getItem('primaryColor') || defaultPrimary
+  );
+  const [secondaryColor, setSecondaryColor] = useState(
+    localStorage.getItem('secondaryColor') || defaultSecondary
+  );
   const [font, setFont] = useState(localStorage.getItem('font') || defaultFont);
 
   useEffect(() => {
@@ -69,137 +100,100 @@ const ThemeCustomizer = () => {
     localStorage.setItem('secondaryColor', secondaryColor);
     localStorage.setItem('font', font);
     injectThemeStyle();
-    setIsOpen(false)
+    setIsOpen(false);
   };
 
   return (
-    <div style={{ position: 'relative', display: 'inline-block' }}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
+    <div>
+      <Button
+        variant="outlined"
+        onClick={e => setIsOpen(e.currentTarget)}
         style={{
-          background: 'var(--card-bg)',
-          border: '1px solid var(--primary-color)',
+          borderColor: 'var(--primary-color)',
           color: 'var(--primary-color)',
-          borderRadius: '6px',
-          padding: '6px 12px',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '6px',
+          textTransform: 'none',
         }}
       >
-        🎨Customise Enbuild Theme
-        <span
-          style={{
-            display: 'inline-block',
-            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 0.2s ease',
-          }}
-        >
-          ▼
-        </span>
-      </button>
-  
-      {isOpen && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '2.5rem',
-            right: 0,
-            width: '270px',
-            backgroundColor: '#f1f1f1',
-            color: '#333',
-            border: '1px solid var(--primary-color)',
-            borderRadius: '8px',
+        🎨 Customise Enbuild Theme ▼
+      </Button>
+
+      <Menu
+        anchorEl={isOpen}
+        open={Boolean(isOpen)}
+        onClose={() => setIsOpen(null)}
+        PaperProps={{
+          style: {
+            width: 300,
             padding: '16px',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-            zIndex: 9999,
-          }}
-        >
-          <h4 style={{ margin: '0 0 12px', fontSize: '1.1rem', color: '#111', }}>UI Theme Customizer</h4>
-  
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ fontSize: '0.9rem', color: '#111', }}>
-              Primary Color
-            </label>
-            <input
-              type="color"
-              value={primaryColor}
-              onChange={(e) => setPrimaryColor(e.target.value)}
-              style={{
-                width: '100%',
-                height: '32px',
-                border: '2px solid var(--primary-color)',
-                borderRadius: '4px',
-                padding: 0,
-              }}
-            />
-          </div>
-  
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ fontSize: '0.9rem', color: '#111', }}>
-              Secondary Color
-            </label>
-            <input
-              type="color"
-              value={secondaryColor}
-              onChange={(e) => setSecondaryColor(e.target.value)}
-              style={{
-                width: '100%',
-                height: '32px',
-                border: '2px solid var(--primary-color)',
-                borderRadius: '4px',
-                padding: 0,
-              }}
-            />
-          </div>
-  
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '4px', fontSize: '0.9rem', color: '#111' }}>
-              Font Style
-            </label>
-            <select
+          },
+        }}
+      >
+        <Typography variant="h6" gutterBottom>
+          UI Theme Customizer
+        </Typography>
+
+        <MenuItem disableRipple>
+          <TextField
+            type="color"
+            label="Primary Color"
+            value={primaryColor}
+            onChange={e => setPrimaryColor(e.target.value)}
+            fullWidth
+            variant="outlined"
+            margin="dense"
+            InputLabelProps={{ shrink: true }}
+          />
+        </MenuItem>
+
+        <MenuItem disableRipple>
+          <TextField
+            type="color"
+            label="Secondary Color"
+            value={secondaryColor}
+            onChange={e => setSecondaryColor(e.target.value)}
+            fullWidth
+            variant="outlined"
+            margin="dense"
+            InputLabelProps={{ shrink: true }}
+          />
+        </MenuItem>
+
+        <MenuItem disableRipple>
+          <FormControl fullWidth margin="dense">
+            <InputLabel id="font-select-label">Font Style</InputLabel>
+            <Select
+              labelId="font-select-label"
               value={font}
-              onChange={(e) => setFont(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '8px',
-                borderRadius: '4px',
-                border: '1px solid var(--primary-color)',
-                fontFamily: font,
-                background: '#fff',
-                color: '#333',
-              }}
+              onChange={e => setFont(e.target.value)}
+              label="Font Style"
+              style={{ fontFamily: font }}
             >
-              {fontOptions.map((f) => (
-                <option key={f} value={f} style={{ fontFamily: f }}>
+              {fontOptions.map(f => (
+                <MenuItem key={f} value={f} style={{ fontFamily: f }}>
                   {f}
-                </option>
+                </MenuItem>
               ))}
-            </select>
-          </div>
-  
-          <button
+            </Select>
+          </FormControl>
+        </MenuItem>
+
+        <Box mt={2} px={1}>
+          <Button
             onClick={savePreferences}
+            variant="contained"
+            fullWidth
             style={{
-                width: '100%',
-                backgroundColor: primaryColor,
-                color: '#fff',
-                border: 'none',
-                borderRadius: '4px',
-                padding: '8px 0',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                fontSize: '0.95rem',
-              }}
+              backgroundColor: primaryColor,
+              color: '#fff',
+              fontWeight: 'bold',
+            }}
           >
             Save
-          </button>
-        </div>
-      )}
+          </Button>
+        </Box>
+      </Menu>
     </div>
   );
-  
 };
 
 injectThemeStyle();
