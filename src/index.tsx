@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { registerPluginSettings, ConfigStore } from '@kinvolk/headlamp-plugin/lib';
-
 import {
   Button,
   MenuItem,
@@ -13,7 +12,7 @@ import {
 } from '@mui/material';
 
 const defaultPrimary = '#05A2C2';
-const defaultSecondary = '#EEEEEE'; // Default to light color for text visibility
+const defaultSecondary = '#EEEEEE';
 const defaultFont = 'Inter';
 
 const fontOptions = [
@@ -62,12 +61,11 @@ const injectThemeStyle = ({ primaryColor, secondaryColor, font }: ThemeOptions) 
     :root {
       --primary-color: ${primaryColor || defaultPrimary};
       --secondary-color: ${secondaryColor || defaultSecondary};
-      --font-family: '${font || defaultFont}', Inter, sans-serif;
+      --font-family: '${font || defaultFont}', sans-serif;
     }
 
     * {
       font-family: var(--font-family) !important;
-      color: var(--secondary-color) !important;
     }
 
     body, p, span, div, label, li, a, td, th, h1, h2, h3, h4, h5, h6 {
@@ -136,7 +134,7 @@ const ThemeCustomizer = () => {
 
   useEffect(() => {
     injectThemeStyle({ primaryColor, secondaryColor, font });
-  }, []);
+  }, [primaryColor, secondaryColor, font]);
 
   const savePreferences = () => {
     const newConfig = { primaryColor, secondaryColor, font };
@@ -195,7 +193,14 @@ const ThemeCustomizer = () => {
           style={{ fontFamily: font }}
         >
           {fontOptions.map(f => (
-            <MenuItem key={f} value={f} style={{ fontFamily: f }}>
+            <MenuItem
+              key={f}
+              value={f}
+              style={{
+                fontFamily: `'${f}', sans-serif`,
+                color: 'initial',
+              }}
+            >
               {f}
             </MenuItem>
           ))}
