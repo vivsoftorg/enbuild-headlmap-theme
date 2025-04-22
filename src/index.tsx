@@ -3,7 +3,6 @@ import { registerPluginSettings, ConfigStore } from '@kinvolk/headlamp-plugin/li
 
 import {
   Button,
-  Menu,
   MenuItem,
   Typography,
   FormControl,
@@ -14,8 +13,8 @@ import {
 } from '@mui/material';
 
 const defaultPrimary = '#05A2C2';
-const defaultSecondary = '';
-const defaultFont = 'Inter sans-serif';
+const defaultSecondary = '#EEEEEE'; // Default to light color for text visibility
+const defaultFont = 'Inter';
 
 const fontOptions = [
   'Inter',
@@ -41,57 +40,89 @@ interface ThemeOptions {
   font?: string;
 }
 
+const loadFont = (fontName: string) => {
+  const formattedFont = fontName.replace(/ /g, '+');
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = `https://fonts.googleapis.com/css2?family=${formattedFont}&display=swap`;
+  link.id = 'custom-font-loader';
+
+  const existing = document.getElementById('custom-font-loader');
+  if (existing) existing.remove();
+  document.head.appendChild(link);
+};
+
 const injectThemeStyle = ({ primaryColor, secondaryColor, font }: ThemeOptions) => {
+  if (font) loadFont(font);
+
   const style = document.createElement('style');
   style.id = 'custom-theme-style';
+
   style.innerHTML = `
     :root {
       --primary-color: ${primaryColor || defaultPrimary};
       --secondary-color: ${secondaryColor || defaultSecondary};
-      --font-family: '${font || defaultFont}',Inter sans-serif;
+      --font-family: '${font || defaultFont}', Inter, sans-serif;
     }
-    body {
+
+    * {
       font-family: var(--font-family) !important;
+      color: var(--secondary-color) !important;
     }
-    .MuiGrid-root,
-    .MuiPaper-root, .MuiBox-root, .MuiCard-root {
-    //   background-color: #1e1e1e !important;
-      // color: var(--secondary-color) !important;
+
+    body, p, span, div, label, li, a, td, th, h1, h2, h3, h4, h5, h6 {
+      color: var(--secondary-color) !important;
     }
-    .MuiTypography-root {
-      // color: var(--secondary-color) !important;
+
+    .MuiTypography-root,
+    .MuiButton-root,
+    .MuiMenuItem-root,
+    .MuiInputBase-input,
+    .MuiSelect-select,
+    .MuiListItemText-primary,
+    .MuiFormLabel-root,
+    .MuiFormControlLabel-label {
+      font-family: var(--font-family) !important;
+      color: var(--secondary-color) !important;
     }
+
     .MuiTableCell-head {
       background-color: #222 !important;
-      // color: var(--secondary-color) !important;
     }
+
     .MuiButton-root {
       background-color: var(--primary-color) !important;
       color: var(--secondary-color) !important;
     }
+
     .Mui-selected {
       background: var(--primary-color) !important;
       color: #000 !important;
-      }
-      .Mui-selected * {
-        color: #000 !important;
-        font-weight: bold !important;
-      }
+    }
+
+    .Mui-selected * {
+      color: #000 !important;
+      font-weight: bold !important;
+    }
+
     .MuiListItemButton-root.Mui-selected {
       background-color: transparent !important;
       color: var(--secondary-color) !important;
       font-weight: bold !important;
       border: 1px solid var(--primary-color) !important;
     }
+
     .MuiListItemButton-root.Mui-selected::before {
       background: var(--primary-color) !important;
     }
+
     .MuiListItemButton-root.Mui-selected svg {
       color: var(--primary-color) !important;
     }
   `;
-  const existing = document.getElementById('custom-theme-style');
-  if (existing) existing.remove();
+
+  const existingStyle = document.getElementById('custom-theme-style');
+  if (existingStyle) existingStyle.remove();
   document.head.appendChild(style);
 };
 
@@ -99,34 +130,31 @@ const store = new ConfigStore('enbuild-customiser-theme');
 
 const ThemeCustomizer = () => {
   const config = store.get() || {};
-  const [primaryColor, setPrimaryColor] = useState(defaultPrimary || config.primaryColor);
+  const [primaryColor, setPrimaryColor] = useState(config.primaryColor || defaultPrimary);
   const [secondaryColor, setSecondaryColor] = useState(config.secondaryColor || defaultSecondary);
   const [font, setFont] = useState(config.font || defaultFont);
 
-  const savePreferences = () => {
-    const newConfig = {
-      primaryColor,
-      secondaryColor,
-      font,
-    };
-    store.set(newConfig);
+  useEffect(() => {
     injectThemeStyle({ primaryColor, secondaryColor, font });
+  }, []);
+
+  const savePreferences = () => {
+    const newConfig = { primaryColor, secondaryColor, font };
+    store.set(newConfig);
+    injectThemeStyle(newConfig);
   };
 
   const resetPreferences = () => {
+    const resetConfig = {
+      primaryColor: defaultPrimary,
+      secondaryColor: defaultSecondary,
+      font: defaultFont,
+    };
     setPrimaryColor(defaultPrimary);
     setSecondaryColor(defaultSecondary);
     setFont(defaultFont);
-    store.set({
-      primaryColor: defaultPrimary,
-      secondaryColor: defaultSecondary,
-      font: defaultFont,
-    });
-    injectThemeStyle({
-      primaryColor: defaultPrimary,
-      secondaryColor: defaultSecondary,
-      font: defaultFont,
-    });
+    store.set(resetConfig);
+    injectThemeStyle(resetConfig);
   };
 
   return (
