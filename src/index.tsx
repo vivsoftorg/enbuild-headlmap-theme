@@ -56,19 +56,27 @@ const injectThemeStyle = ({ primaryColor, secondaryColor, font }: ThemeOptions) 
     .MuiGrid-root,
     .MuiPaper-root, .MuiBox-root, .MuiCard-root {
     //   background-color: #1e1e1e !important;
-      color: var(--secondary-color) !important;
+      // color: var(--secondary-color) !important;
     }
     .MuiTypography-root {
-      color: var(--secondary-color) !important;
+      // color: var(--secondary-color) !important;
     }
     .MuiTableCell-head {
       background-color: #222 !important;
-      color: var(--secondary-color) !important;
+      // color: var(--secondary-color) !important;
     }
     .MuiButton-root {
       background-color: var(--primary-color) !important;
       color: var(--secondary-color) !important;
     }
+    .Mui-selected {
+      background: var(--primary-color) !important;
+      color: #000 !important;
+      }
+      .Mui-selected * {
+        color: #000 !important;
+        font-weight: bold !important;
+      }
     .MuiListItemButton-root.Mui-selected {
       background-color: transparent !important;
       color: var(--secondary-color) !important;
@@ -91,7 +99,7 @@ const store = new ConfigStore('enbuild-customiser-theme');
 
 const ThemeCustomizer = () => {
   const config = store.get() || {};
-  const [primaryColor, setPrimaryColor] = useState(config.primaryColor || defaultPrimary);
+  const [primaryColor, setPrimaryColor] = useState(defaultPrimary || config.primaryColor);
   const [secondaryColor, setSecondaryColor] = useState(config.secondaryColor || defaultSecondary);
   const [font, setFont] = useState(config.font || defaultFont);
 

@@ -1,7 +1,7 @@
 {
   "name": "enbuild-headlamp-theme",
-  "version": "0.1.0",
-  "description": "Your Headlamp plugin",
+  "version": "0.0.1",
+  "description": "Enbuild Theme plugin",
   "scripts": {
     "start": "headlamp-plugin start",
     "build": "headlamp-plugin build",
