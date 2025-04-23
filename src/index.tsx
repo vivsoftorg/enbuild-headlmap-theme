@@ -15,10 +15,11 @@ import {
 
 const defaultPrimary = '#05A2C2';
 const defaultSecondary = '';
-const defaultFont = 'Inter sans-serif';
+const defaultFont = 'Inter';
 
 const fontOptions = [
   'Inter',
+  'sans-serif',
   'Arial',
   'Roboto',
   'Courier New',
@@ -48,7 +49,7 @@ const injectThemeStyle = ({ primaryColor, secondaryColor, font }: ThemeOptions) 
     :root {
       --primary-color: ${primaryColor || defaultPrimary};
       --secondary-color: ${secondaryColor || defaultSecondary};
-      --font-family: '${font || defaultFont}',Inter sans-serif;
+      --font-family: ${font || defaultFont};
     }
     body {
       font-family: var(--font-family) !important;
@@ -62,8 +63,8 @@ const injectThemeStyle = ({ primaryColor, secondaryColor, font }: ThemeOptions) 
       // color: var(--secondary-color) !important;
     }
     .MuiTableCell-head {
-      background-color: #222 !important;
-      // color: var(--secondary-color) !important;
+      background-color: var(--primary-color) !important;
+      color: var(--secondary-color) !important;
     }
     .MuiButton-root {
       background-color: var(--primary-color) !important;
@@ -71,12 +72,12 @@ const injectThemeStyle = ({ primaryColor, secondaryColor, font }: ThemeOptions) 
     }
     .Mui-selected {
       background: var(--primary-color) !important;
-      color: #000 !important;
-      }
-      .Mui-selected * {
-        color: #000 !important;
-        font-weight: bold !important;
-      }
+      color: var(--secondary-color) !important;
+    }
+    .Mui-selected * {
+      color: var(--secondary-color) !important;
+      font-weight: bold !important;
+    }
     .MuiListItemButton-root.Mui-selected {
       background-color: transparent !important;
       color: var(--secondary-color) !important;
@@ -94,6 +95,12 @@ const injectThemeStyle = ({ primaryColor, secondaryColor, font }: ThemeOptions) 
   if (existing) existing.remove();
   document.head.appendChild(style);
 };
+
+injectThemeStyle({
+  primaryColor: defaultPrimary,
+  secondaryColor: defaultSecondary,
+  font: defaultFont,
+});
 
 const store = new ConfigStore('enbuild-customiser-theme');
 
@@ -161,7 +168,7 @@ const ThemeCustomizer = () => {
         <InputLabel id="font-select-label">Font Style</InputLabel>
         <Select
           labelId="font-select-label"
-          value={font}
+          value={font || defaultFont}
           onChange={e => setFont(e.target.value)}
           label="Font Style"
           style={{ fontFamily: font }}
