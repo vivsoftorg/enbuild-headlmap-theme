@@ -1,6 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { registerPluginSettings, ConfigStore } from '@kinvolk/headlamp-plugin/lib';
+import React, { useState } from 'react';
 import {
+  registerPluginSettings,
+  ConfigStore,
+  registerAppLogo,
+  AppLogoProps,
+} from '@kinvolk/headlamp-plugin/lib';
+import {
+  Box,
   Button,
   MenuItem,
   Typography,
@@ -8,138 +14,128 @@ import {
   InputLabel,
   Select,
   TextField,
-  Box,
 } from '@mui/material';
 
 const defaultPrimary = '#05A2C2';
-const defaultSecondary = '#EEEEEE';
+const defaultSecondary = '#ffffff';
 const defaultFont = 'Inter';
+const defaultLogoURL = '';
 
 const fontOptions = [
-  'Inter',
-  'Arial',
-  'Roboto',
-  'Courier New',
-  'Georgia',
-  'Monospace',
-  'Verdana',
-  'Tahoma',
-  'Times New Roman',
-  'Trebuchet MS',
-  'Lucida Console',
-  'Comic Sans MS',
-  'PT Sans',
-  'Open Sans',
-  'Lato',
+  'Inter', 'Arial', 'Roboto', 'Courier New', 'Georgia', 'Monospace', 'Verdana',
+  'Tahoma', 'Times New Roman', 'Trebuchet MS', 'Lucida Console', 'Comic Sans MS',
+  'PT Sans', 'Open Sans', 'Lato',
 ];
 
 interface ThemeOptions {
   primaryColor?: string;
   secondaryColor?: string;
   font?: string;
+  logoURL?: string;
 }
 
 const loadFont = (fontName: string) => {
   const formattedFont = fontName.replace(/ /g, '+');
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = `https://fonts.googleapis.com/css2?family=${formattedFont}&display=swap`;
-  link.id = 'custom-font-loader';
+  const fontLinkId = 'custom-font-loader';
+  const styleId = 'custom-font-style';
 
-  const existing = document.getElementById('custom-font-loader');
-  if (existing) existing.remove();
-  document.head.appendChild(link);
+  document.getElementById(fontLinkId)?.remove();
+  document.getElementById(styleId)?.remove();
+
+  if (!['Times New Roman', 'Arial', 'Courier New', 'Georgia'].includes(fontName)) {
+    const link = document.createElement('link');
+    link.id = fontLinkId;
+    link.rel = 'stylesheet';
+    link.href = `https://fonts.googleapis.com/css2?family=${formattedFont}&display=swap`;
+    document.head.appendChild(link);
+  }
+
+  const style = document.createElement('style');
+  style.id = styleId;
+  style.innerHTML = `
+    body, * {
+      font-family: "${fontName}", sans-serif !important;
+    }
+  `;
+  document.head.appendChild(style);
 };
 
-const injectThemeStyle = ({ primaryColor, secondaryColor, font }: ThemeOptions) => {
-  if (font) loadFont(font);
-
+const injectThemeStyle = ({ primaryColor, secondaryColor }: ThemeOptions) => {
   const style = document.createElement('style');
   style.id = 'custom-theme-style';
 
   style.innerHTML = `
-    :root {
-      --primary-color: ${primaryColor || defaultPrimary};
-      --secondary-color: ${secondaryColor || defaultSecondary};
-      --font-family: '${font || defaultFont}', sans-serif;
+    /* Button styling */
+    .MuiButton-contained {
+      background-color: ${primaryColor || defaultPrimary} !important;
+      color: ${secondaryColor || defaultSecondary} !important;
     }
 
-    * {
-      font-family: var(--font-family) !important;
+    .MuiButton-contained:hover {
+      background-color: ${primaryColor || defaultPrimary}cc !important;
     }
 
-    body, p, span, div, label, li, a, td, th, h1, h2, h3, h4, h5, h6 {
-      color: var(--secondary-color) !important;
+    /* Selected Menu Item styling */
+    .MuiDrawer-paper .MuiListItem-root.Mui-selected {
+      background-color: ${primaryColor || defaultPrimary} !important;
+      color: ${secondaryColor || defaultSecondary} !important;
     }
 
-    .MuiTypography-root,
-    .MuiButton-root,
-    .MuiMenuItem-root,
-    .MuiInputBase-input,
-    .MuiSelect-select,
-    .MuiListItemText-primary,
-    .MuiFormLabel-root,
-    .MuiFormControlLabel-label {
-      font-family: var(--font-family) !important;
-      color: var(--secondary-color) !important;
+    .MuiDrawer-paper .MuiListItem-root.Mui-selected .MuiListItemText-primary {
+      color: ${secondaryColor || defaultSecondary} !important;
     }
 
-    .MuiTableCell-head {
-      background-color: #222 !important;
-    }
-
-    .MuiButton-root {
-      background-color: var(--primary-color) !important;
-      color: var(--secondary-color) !important;
-    }
-
-    .Mui-selected {
-      background: var(--primary-color) !important;
-      color: #000 !important;
-    }
-
-    .Mui-selected * {
-      color: #000 !important;
-      font-weight: bold !important;
-    }
-
-    .MuiListItemButton-root.Mui-selected {
-      background-color: transparent !important;
-      color: var(--secondary-color) !important;
-      font-weight: bold !important;
-      border: 1px solid var(--primary-color) !important;
-    }
-
-    .MuiListItemButton-root.Mui-selected::before {
-      background: var(--primary-color) !important;
-    }
-
-    .MuiListItemButton-root.Mui-selected svg {
-      color: var(--primary-color) !important;
+    .MuiDrawer-paper .MuiListItem-root.Mui-selected:hover {
+      background-color: ${primaryColor || defaultPrimary}cc !important;
     }
   `;
 
-  const existingStyle = document.getElementById('custom-theme-style');
-  if (existingStyle) existingStyle.remove();
+  document.getElementById('custom-theme-style')?.remove();
   document.head.appendChild(style);
 };
 
-const store = new ConfigStore('enbuild-customiser-theme');
+const store = new ConfigStore<ThemeOptions>('enbuild-customiser-theme');
+
+export function SimpleLogo(props: AppLogoProps) {
+  const { className } = props;
+  const useConf = store.useConfig();
+  const config = useConf();
+
+  if (!config?.logoURL) return null;
+
+  return (
+    <Box
+      component="img"
+      src={config.logoURL}
+      alt="EnBuild Logo"
+      className={className}
+      sx={{
+        backgroundColor: '#ffffff',
+        height: '36px',
+        maxWidth: '100%',
+        objectFit: 'contain',
+      }}
+      onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+        console.error('Error loading logo');
+        e.currentTarget.style.display = 'none';
+      }}
+    />
+  );
+}
 
 const ThemeCustomizer = () => {
   const config = store.get() || {};
   const [primaryColor, setPrimaryColor] = useState(config.primaryColor || defaultPrimary);
   const [secondaryColor, setSecondaryColor] = useState(config.secondaryColor || defaultSecondary);
   const [font, setFont] = useState(config.font || defaultFont);
-
-  useEffect(() => {
-    injectThemeStyle({ primaryColor, secondaryColor, font });
-  }, [primaryColor, secondaryColor, font]);
+  const [logoURL, setLogoURL] = useState(config.logoURL || defaultLogoURL);
 
   const savePreferences = () => {
-    const newConfig = { primaryColor, secondaryColor, font };
+    const newConfig = { primaryColor, secondaryColor, font, logoURL };
     store.set(newConfig);
     injectThemeStyle(newConfig);
+    if (font) loadFont(font);
+    if (logoURL) registerAppLogo(SimpleLogo);
   };
 
   const resetPreferences = () => {
@@ -147,12 +143,15 @@ const ThemeCustomizer = () => {
       primaryColor: defaultPrimary,
       secondaryColor: defaultSecondary,
       font: defaultFont,
+      logoURL: defaultLogoURL,
     };
     setPrimaryColor(defaultPrimary);
     setSecondaryColor(defaultSecondary);
     setFont(defaultFont);
+    setLogoURL(defaultLogoURL);
     store.set(resetConfig);
     injectThemeStyle(resetConfig);
+    loadFont(defaultFont);
   };
 
   return (
@@ -163,7 +162,7 @@ const ThemeCustomizer = () => {
 
       <TextField
         type="color"
-        label="Primary Color"
+        label="Primary Color (Selected Menu BG)"
         value={primaryColor}
         onChange={e => setPrimaryColor(e.target.value)}
         fullWidth
@@ -174,7 +173,7 @@ const ThemeCustomizer = () => {
 
       <TextField
         type="color"
-        label="Secondary Color"
+        label="Secondary Color (Selected Menu Text)"
         value={secondaryColor}
         onChange={e => setSecondaryColor(e.target.value)}
         fullWidth
@@ -190,22 +189,25 @@ const ThemeCustomizer = () => {
           value={font}
           onChange={e => setFont(e.target.value)}
           label="Font Style"
-          style={{ fontFamily: font }}
         >
           {fontOptions.map(f => (
-            <MenuItem
-              key={f}
-              value={f}
-              style={{
-                fontFamily: `'${f}', sans-serif`,
-                color: 'initial',
-              }}
-            >
+            <MenuItem key={f} value={f} style={{ fontFamily: f }}>
               {f}
             </MenuItem>
           ))}
         </Select>
       </FormControl>
+
+      <TextField
+        label="Logo URL"
+        value={logoURL}
+        onChange={e => setLogoURL(e.target.value)}
+        fullWidth
+        variant="outlined"
+        margin="dense"
+        InputLabelProps={{ shrink: true }}
+        helperText="Enter a valid image URL (PNG recommended)"
+      />
 
       <Box mt={2} display="flex" justifyContent="space-between" gap={2}>
         <Button onClick={savePreferences} variant="contained">
