@@ -19,7 +19,7 @@ import React, { useState } from 'react';
 const defaultPrimary = '#05A2C2';
 const defaultSecondary = '#ffffff';
 const defaultFont = 'Inter';
-const defaultLogoURL = '';
+const defaultLogoURL = 'https://enbuild-docs.vivplatform.io/images/emma/enbuild-logo.png';
 
 const fontOptions = [
   'Inter',
@@ -80,7 +80,6 @@ const injectThemeStyle = ({
   style.id = 'custom-theme-style';
 
   style.innerHTML = `
-    /* Button styles */
     .MuiButton-contained {
       background-color: ${primaryColor} !important;
       color: ${secondaryColor} !important;
@@ -88,11 +87,9 @@ const injectThemeStyle = ({
     .MuiButton-contained:hover {
       background-color: ${primaryColor}cc !important;
     }
-    /* Drawer background using primaryColor */
     .MuiDrawer-paper {
       background-color: ${primaryColor} !important;
     }
-    /* Main menu items (direct children) */
     .MuiDrawer-paper > .MuiListItem-root {
       color: ${secondaryColor} !important;
     }
@@ -113,18 +110,15 @@ const injectThemeStyle = ({
     .MuiDrawer-paper > .MuiListItem-root.Mui-selected .MuiListItemText-primary {
       color: ${primaryColor} !important;
     }
-    /* Submenu items – using descendant selectors to account for intermediate elements */
     .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root {
       background-color: transparent !important;
       color: ${secondaryColor} !important;
       transition: color 0.3s, background-color 0.3s !important;
     }
-    /* Ensure individual submenu item default state */
     .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root:not(:hover) {
       background-color: transparent !important;
       color: ${secondaryColor} !important;
     }
-    /* When hovering on a submenu item only that item changes */
     .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root:hover {
       background-color: ${secondaryColor} !important;
       color: ${primaryColor} !important;
@@ -133,12 +127,10 @@ const injectThemeStyle = ({
       background-color: ${secondaryColor} !important;
       color: ${primaryColor} !important;
     }
-    /* Global icon override: keep icons black regardless of state */
     .MuiDrawer-paper .MuiListItemIcon,
     .MuiSvgIcon-root {
       color: black !important;
     }
-    /* Do not change icon color on hover or selected state */
     .MuiDrawer-paper > .MuiListItem-root:hover .MuiListItemIcon,
     .MuiDrawer-paper > .MuiListItem-root.Mui-selected .MuiListItemIcon,
     .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root:hover .MuiListItemIcon,
@@ -214,6 +206,7 @@ const ThemeCustomizer = () => {
     store.set(resetConfig);
     injectThemeStyle(resetConfig);
     loadFont(defaultFont);
+    registerAppLogo(SimpleLogo);
   };
 
   return (
@@ -265,7 +258,7 @@ const ThemeCustomizer = () => {
       <TextField
         label="Logo URL"
         value={logoURL}
-        onChange={e => setLogoURL(e.target.value || defaultLogoURL)}
+        onChange={e => setLogoURL(e.target.value)}
         fullWidth
         variant="outlined"
         margin="dense"
