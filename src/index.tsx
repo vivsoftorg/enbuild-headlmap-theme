@@ -1,23 +1,21 @@
-import React, { useState, useEffect } from 'react';
 import {
-  registerPluginSettings,
+  AppLogoProps,
   ConfigStore,
   registerAppLogo,
-  AppLogoProps,
-  registerAppTheme,
+  registerPluginSettings,
 } from '@kinvolk/headlamp-plugin/lib';
 import {
   Box,
   Button,
-  MenuItem,
-  Typography,
   FormControl,
   InputLabel,
+  MenuItem,
   Select,
   TextField,
+  Typography,
 } from '@mui/material';
+import React, { useState } from 'react';
 
-// Match the theme in the screenshot
 const defaultPrimary = '#05A2C2';
 const defaultSecondary = '#ffffff';
 const defaultFont = 'Inter';
@@ -48,7 +46,7 @@ interface ThemeOptions {
   logoURL?: string;
 }
 
-const loadFont = (fontName: string) => {
+const loadFont = (fontName: string = defaultFont): void => {
   const formattedFont = fontName.replace(/ /g, '+');
   const fontLinkId = 'custom-font-loader';
   const styleId = 'custom-font-style';
@@ -66,83 +64,86 @@ const loadFont = (fontName: string) => {
 
   const style = document.createElement('style');
   style.id = styleId;
-  style.innerHTML = `body, * { font-family: "${fontName}", sans-serif !important; }`;
+  style.innerHTML = `
+    body, * {
+      font-family: "${fontName}", sans-serif !important;
+    }
+  `;
   document.head.appendChild(style);
 };
 
-const injectThemeStyle = ({ primaryColor, secondaryColor }: ThemeOptions) => {
+const injectThemeStyle = ({
+  primaryColor = defaultPrimary,
+  secondaryColor = defaultSecondary,
+}: ThemeOptions): void => {
   const style = document.createElement('style');
   style.id = 'custom-theme-style';
 
   style.innerHTML = `
-    /* Button styling */
+    /* Button styles */
     .MuiButton-contained {
-      background-color: ${primaryColor || defaultPrimary} !important;
-      color: ${secondaryColor || defaultSecondary} !important;
+      background-color: ${primaryColor} !important;
+      color: ${secondaryColor} !important;
     }
-
     .MuiButton-contained:hover {
-      background-color: ${primaryColor || defaultPrimary}cc !important;
+      background-color: ${primaryColor}cc !important;
     }
-
-    /* Sidebar (Drawer) background and text color */
+    /* Drawer background using primaryColor */
     .MuiDrawer-paper {
-      background-color: ${secondaryColor || defaultSecondary} !important;
-      color: ${primaryColor || defaultPrimary} !important;
+      background-color: ${primaryColor} !important;
     }
-
-    /* Unselected menu item text */
-    .MuiDrawer-paper .MuiListItem-root {
-      color: ${primaryColor || defaultPrimary} !important;
+    /* Main menu items (direct children) */
+    .MuiDrawer-paper > .MuiListItem-root {
+      color: ${secondaryColor} !important;
     }
-
-    /* Selected Menu Item */
-    .MuiDrawer-paper .MuiListItem-root.Mui-selected {
-      background-color: ${primaryColor || defaultPrimary} !important;
-      color: ${secondaryColor || defaultSecondary} !important;
+    .MuiDrawer-paper > .MuiListItem-root .MuiListItemText-primary {
+      color: ${secondaryColor} !important;
     }
-
-    .MuiDrawer-paper .MuiListItem-root.Mui-selected .MuiListItemText-primary {
-      color: ${secondaryColor || defaultSecondary} !important;
+    .MuiDrawer-paper > .MuiListItem-root:hover {
+      background-color: ${secondaryColor} !important;
+      color: ${primaryColor} !important;
     }
-
-    /* Hovered menu item (same as selected) */
-    .MuiDrawer-paper .MuiListItem-root:hover {
-      background-color: ${primaryColor || defaultPrimary} !important;
-      color: ${secondaryColor || defaultSecondary} !important;
+    .MuiDrawer-paper > .MuiListItem-root:hover .MuiListItemText-primary {
+      color: ${primaryColor} !important;
     }
-
-    .MuiDrawer-paper .MuiListItem-root:hover .MuiListItemText-primary {
-      color: ${secondaryColor || defaultSecondary} !important;
+    .MuiDrawer-paper > .MuiListItem-root.Mui-selected {
+      background-color: ${secondaryColor} !important;
+      color: ${primaryColor} !important;
     }
-
-    /* Hovered submenu item */
-    .MuiDrawer-paper .MuiListItem-root .MuiCollapse-root .MuiListItemText-primary:hover {
-      background-color: ${primaryColor || defaultPrimary} !important;
-      color: ${secondaryColor || defaultSecondary} !important;
+    .MuiDrawer-paper > .MuiListItem-root.Mui-selected .MuiListItemText-primary {
+      color: ${primaryColor} !important;
     }
-
-    /* Icons wrapper (ListItemIcon) */
-    .MuiDrawer-paper .MuiListItemIcon-root {
+    /* Submenu items – using descendant selectors to account for intermediate elements */
+    .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root {
       background-color: transparent !important;
-      color: inherit !important;
+      color: ${secondaryColor} !important;
+      transition: color 0.3s, background-color 0.3s !important;
     }
-
-    /* Icons themselves (SvgIcon) */
-    .MuiDrawer-paper .MuiListItemIcon-root .MuiSvgIcon-root {
+    /* Ensure individual submenu item default state */
+    .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root:not(:hover) {
       background-color: transparent !important;
-      color: inherit !important;
+      color: ${secondaryColor} !important;
     }
-
-    /* Icons on hover (optional smoother hover) */
-    .MuiDrawer-paper .MuiListItem-root:hover .MuiListItemIcon-root .MuiSvgIcon-root {
-      color: ${secondaryColor || defaultSecondary} !important;
+    /* When hovering on a submenu item only that item changes */
+    .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root:hover {
+      background-color: ${secondaryColor} !important;
+      color: ${primaryColor} !important;
     }
-
-    /* Navbar (AppBar) styling */
-    .MuiAppBar-root {
-      background-color: ${secondaryColor || defaultSecondary} !important;
-      color: ${primaryColor || defaultPrimary} !important;
+    .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root.Mui-selected {
+      background-color: ${secondaryColor} !important;
+      color: ${primaryColor} !important;
+    }
+    /* Global icon override: keep icons black regardless of state */
+    .MuiDrawer-paper .MuiListItemIcon,
+    .MuiSvgIcon-root {
+      color: black !important;
+    }
+    /* Do not change icon color on hover or selected state */
+    .MuiDrawer-paper > .MuiListItem-root:hover .MuiListItemIcon,
+    .MuiDrawer-paper > .MuiListItem-root.Mui-selected .MuiListItemIcon,
+    .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root:hover .MuiListItemIcon,
+    .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root.Mui-selected .MuiListItemIcon {
+      color: black !important;
     }
   `;
 
@@ -152,8 +153,13 @@ const injectThemeStyle = ({ primaryColor, secondaryColor }: ThemeOptions) => {
 
 const store = new ConfigStore<ThemeOptions>('enbuild-customiser-theme');
 
+const initialConfig = store.get() || {};
+injectThemeStyle(initialConfig);
+if (initialConfig.font) loadFont(initialConfig.font);
+if (initialConfig.logoURL) registerAppLogo(SimpleLogo);
+
 export function SimpleLogo(props: AppLogoProps) {
-  const { className } = props;
+  const { className = '' } = props;
   const useConf = store.useConfig();
   const config = useConf();
 
@@ -172,66 +178,12 @@ export function SimpleLogo(props: AppLogoProps) {
         objectFit: 'contain',
       }}
       onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-        console.error('Error loading logo');
+        console.error('Error loading logo: ', e.currentTarget.src);
         e.currentTarget.style.display = 'none';
       }}
     />
   );
 }
-
-// Apply the theme settings on initial load and when config changes
-const applyThemeSettings = () => {
-  const config = store.get() || {};
-  const themeSettings = {
-    primaryColor: config.primaryColor || defaultPrimary,
-    secondaryColor: config.secondaryColor || defaultSecondary,
-    font: config.font || defaultFont,
-    logoURL: config.logoURL || defaultLogoURL,
-  };
-
-  // Apply theme styles
-  injectThemeStyle(themeSettings);
-
-  // Load custom font
-  if (themeSettings.font) {
-    loadFont(themeSettings.font);
-  }
-
-  // Register logo if URL is provided
-  if (themeSettings.logoURL) {
-    registerAppLogo(SimpleLogo);
-  }
-
-  // Register app theme with the sidebar styles
-  registerAppTheme({
-    name: 'enbuild-custom-theme',
-    base: 'light',
-    primary: themeSettings.primaryColor,
-    secondary: themeSettings.secondaryColor,
-    text: {
-      primary: '#44444f',
-    },
-    background: {
-      muted: '#f5f5f5',
-    },
-    sidebar: {
-      background: themeSettings.secondaryColor,
-      color: themeSettings.primaryColor,
-      selectedBackground: themeSettings.primaryColor,
-      selectedColor: themeSettings.secondaryColor,
-      actionBackground: 'none',
-    },
-    navbar: {
-      background: '#f0f0f0',
-      color: '#292827',
-    },
-    buttonTextTransform: 'none',
-    radius: 6,
-  });
-};
-
-// Initial application of theme when plugin loads
-applyThemeSettings();
 
 const ThemeCustomizer = () => {
   const config = store.get() || {};
@@ -240,50 +192,16 @@ const ThemeCustomizer = () => {
   const [font, setFont] = useState(config.font || defaultFont);
   const [logoURL, setLogoURL] = useState(config.logoURL || defaultLogoURL);
 
-  // Apply theme on initial load
-  useEffect(() => {
-    applyThemeSettings();
-  }, []);
-
   const savePreferences = () => {
     const newConfig = { primaryColor, secondaryColor, font, logoURL };
     store.set(newConfig);
-
-    // Apply updated theme
     injectThemeStyle(newConfig);
     if (font) loadFont(font);
     if (logoURL) registerAppLogo(SimpleLogo);
-
-    // Update app theme registration
-    registerAppTheme({
-      name: 'enbuild-custom-theme',
-      base: 'light',
-      primary: primaryColor,
-      secondary: secondaryColor,
-      text: {
-        primary: '#44444f',
-      },
-      background: {
-        muted: '#f5f5f5',
-      },
-      sidebar: {
-        background: secondaryColor,
-        color: primaryColor,
-        selectedBackground: primaryColor,
-        selectedColor: secondaryColor,
-        actionBackground: 'none',
-      },
-      navbar: {
-        background: '#f0f0f0',
-        color: '#292827',
-      },
-      buttonTextTransform: 'none',
-      radius: 6,
-    });
   };
 
   const resetPreferences = () => {
-    const resetConfig = {
+    const resetConfig: ThemeOptions = {
       primaryColor: defaultPrimary,
       secondaryColor: defaultSecondary,
       font: defaultFont,
@@ -294,50 +212,23 @@ const ThemeCustomizer = () => {
     setFont(defaultFont);
     setLogoURL(defaultLogoURL);
     store.set(resetConfig);
-
-    // Apply reset theme
     injectThemeStyle(resetConfig);
     loadFont(defaultFont);
-
-    // Update app theme registration with defaults
-    registerAppTheme({
-      name: 'enbuild-custom-theme',
-      base: 'light',
-      primary: defaultPrimary,
-      secondary: defaultSecondary,
-      text: {
-        primary: '#44444f',
-      },
-      background: {
-        muted: '#f5f5f5',
-      },
-      sidebar: {
-        background: defaultSecondary,
-        color: defaultPrimary,
-        selectedBackground: defaultPrimary,
-        selectedColor: defaultSecondary,
-        actionBackground: 'none',
-      },
-      navbar: {
-        background: '#f0f0f0',
-        color: '#292827',
-      },
-      buttonTextTransform: 'none',
-      radius: 6,
-    });
   };
 
   return (
     <Box width="50%" style={{ paddingTop: '8vh' }}>
-      <Typography variant="h6" gutterBottom>
-        UI Theme Customizer
-      </Typography>
+      <Box mb={2}>
+        <Typography variant="h6" align="center">
+          UI Theme Customizer
+        </Typography>
+      </Box>
 
       <TextField
         type="color"
-        label="Primary Color (Selected Menu BG)"
+        label="Primary Color (Drawer Background)"
         value={primaryColor}
-        onChange={e => setPrimaryColor(e.target.value)}
+        onChange={e => setPrimaryColor(e.target.value || defaultPrimary)}
         fullWidth
         variant="outlined"
         margin="dense"
@@ -346,9 +237,9 @@ const ThemeCustomizer = () => {
 
       <TextField
         type="color"
-        label="Secondary Color (Selected Menu Text)"
+        label="Secondary Color (Text/Icon)"
         value={secondaryColor}
-        onChange={e => setSecondaryColor(e.target.value)}
+        onChange={e => setSecondaryColor(e.target.value || defaultSecondary)}
         fullWidth
         variant="outlined"
         margin="dense"
@@ -360,7 +251,7 @@ const ThemeCustomizer = () => {
         <Select
           labelId="font-select-label"
           value={font}
-          onChange={e => setFont(e.target.value)}
+          onChange={e => setFont(e.target.value || defaultFont)}
           label="Font Style"
         >
           {fontOptions.map(f => (
@@ -374,7 +265,7 @@ const ThemeCustomizer = () => {
       <TextField
         label="Logo URL"
         value={logoURL}
-        onChange={e => setLogoURL(e.target.value)}
+        onChange={e => setLogoURL(e.target.value || defaultLogoURL)}
         fullWidth
         variant="outlined"
         margin="dense"
@@ -394,5 +285,4 @@ const ThemeCustomizer = () => {
   );
 };
 
-// Register the plugin settings
 registerPluginSettings('enbuild-headlamp-theme', ThemeCustomizer, false);
