@@ -137,6 +137,11 @@ const injectThemeStyle = ({
     .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root.Mui-selected .MuiListItemIcon {
       color: black !important;
     }
+    /* Change Header Color */
+    .MuiAppBar-root {
+      background-color: ${primaryColor} !important;
+      color: ${secondaryColor} !important; /* Optional: Change text color in header */
+    }
   `;
 
   document.getElementById('custom-theme-style')?.remove();
@@ -168,6 +173,7 @@ export function SimpleLogo(props: AppLogoProps) {
         height: '36px',
         maxWidth: '100%',
         objectFit: 'contain',
+        // Add these styles to position the logo
         position: 'absolute',
         top: '10px',
         left: '250px',
@@ -223,7 +229,7 @@ const ThemeCustomizer = () => {
 
       <TextField
         type="color"
-        label="Primary Color (Drawer Background)"
+        label="Primary Color (Drawer Background, Header)"
         value={primaryColor}
         onChange={e => setPrimaryColor(e.target.value || defaultPrimary)}
         fullWidth
@@ -234,7 +240,7 @@ const ThemeCustomizer = () => {
 
       <TextField
         type="color"
-        label="Secondary Color (Text/Icon)"
+        label="Secondary Color (Text/Icon in Header & Drawer)"
         value={secondaryColor}
         onChange={e => setSecondaryColor(e.target.value || defaultSecondary)}
         fullWidth
