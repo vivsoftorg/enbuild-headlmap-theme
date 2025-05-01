@@ -168,6 +168,10 @@ export function SimpleLogo(props: AppLogoProps) {
         height: '36px',
         maxWidth: '100%',
         objectFit: 'contain',
+        position: 'absolute',
+        top: '10px',
+        left: '250px',
+        zIndex: 10,
       }}
       onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
         console.error('Error loading logo: ', e.currentTarget.src);
@@ -185,7 +189,7 @@ const ThemeCustomizer = () => {
   const [logoURL, setLogoURL] = useState(config.logoURL || defaultLogoURL);
 
   const savePreferences = () => {
-    const newConfig = { primaryColor, secondaryColor, font, logoURL };
+    const newConfig: ThemeOptions = { primaryColor, secondaryColor, font, logoURL };
     store.set(newConfig);
     injectThemeStyle(newConfig);
     if (font) loadFont(font);
