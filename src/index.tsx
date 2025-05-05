@@ -128,19 +128,77 @@ const injectThemeStyle = ({
       color: ${primaryColor} !important;
     }
     .MuiDrawer-paper .MuiListItemIcon,
-    .MuiSvgIcon-root {
-      color: black !important;
+    .MuiDrawer-paper .MuiSvgIcon-root {
+      color: ${secondaryColor} !important;
     }
     .MuiDrawer-paper > .MuiListItem-root:hover .MuiListItemIcon,
     .MuiDrawer-paper > .MuiListItem-root.Mui-selected .MuiListItemIcon,
     .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root:hover .MuiListItemIcon,
     .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root.Mui-selected .MuiListItemIcon {
-      color: black !important;
+      color: ${primaryColor} !important;
     }
-    /* Change Header Color */
+    /* Change Header Color and Text Color */
     .MuiAppBar-root {
       background-color: ${primaryColor} !important;
-      color: ${secondaryColor} !important; /* Optional: Change text color in header */
+      color: ${secondaryColor} !important;
+    }
+    
+    /* Ensure all icons in header use secondary color */
+    .MuiAppBar-root .MuiSvgIcon-root,
+    .MuiAppBar-root .MuiIcon-root,
+    .MuiAppBar-root .MuiIconButton-root,
+    .MuiAppBar-root .MuiTypography-root,
+    .MuiAppBar-root button,
+    .MuiAppBar-root a,
+    .MuiAppBar-root input::placeholder,
+    .MuiAppBar-root .MuiInputBase-root {
+      color: ${secondaryColor} !important;
+    }
+    
+    /* Header search field styling - fix for the searchbar outline */
+    .MuiAppBar-root input {
+      color: ${secondaryColor} !important;
+    }
+    
+    /* Fix for "Hello" text in header */
+    .MuiAppBar-root div[class*="appBarUserInfo"] *,
+    .MuiAppBar-root div[class*="userMenu"] *,
+    .MuiAppBar-root span,
+    .MuiAppBar-root p {
+      color: ${secondaryColor} !important;
+    }
+    
+    /* Ensure search bar outline uses secondary color */
+    .MuiAppBar-root .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline,
+    .MuiAppBar-root .MuiInputBase-root.MuiOutlinedInput-root {
+      border-color: ${secondaryColor} !important;
+    }
+    
+    /* Ensure search icon uses secondary color */
+    .MuiAppBar-root .MuiInputAdornment-root .MuiSvgIcon-root {
+      color: ${secondaryColor} !important;
+    }
+    
+    /* Any buttons in header */
+    .MuiAppBar-root .MuiButton-root {
+      color: ${secondaryColor} !important;
+    }
+    
+    /* Ensure search box icon and outline use secondary color */
+    .MuiAppBar-root .MuiInputBase-root.MuiOutlinedInput-root .MuiSvgIcon-root,
+    .MuiAppBar-root .MuiInputBase-root.MuiOutlinedInput-root fieldset {
+      color: ${secondaryColor} !important;
+      border-color: ${secondaryColor} !important;
+    }
+    
+    /* Specific fix for search bar icon */
+    .MuiAppBar-root .MuiInputBase-root svg {
+      color: ${secondaryColor} !important;
+    }
+    
+    /* Ensure all text in header uses secondary color */
+    .MuiAppBar-root * {
+      color: ${secondaryColor} !important;
     }
   `;
 
