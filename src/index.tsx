@@ -22,10 +22,11 @@ const defaultFont = 'Inter';
 const defaultLogoURL = 'https://enbuild-docs.vivplatform.io/images/emma/enbuild-logo.png';
 const defaultK8sLogoURL =
   'https://raw.githubusercontent.com/cncf/artwork/master/projects/kubernetes/icon/color/kubernetes-icon-color.png';
-const defaultClusterUIPath = '/c';
+const defaultClusterUIPath = ''; // Empty string for direct cluster access
 const defaultSecondLogoURL = '';
 const defaultSecondLogoText = 'Second Logo';
 const defaultSecondLogoPath = '/';
+const specificClusterName = 'k3d-headlamp'; // Default cluster name
 
 const fontOptions = [
   'Inter',
@@ -55,6 +56,9 @@ interface ThemeOptions {
   secondLogoURL?: string;
   secondLogoText?: string;
   secondLogoPath?: string;
+  k8sLogoIsLink?: boolean; // New option: Is K8s logo a link?
+  secondLogoIsLink?: boolean; // New option: Is second logo a link?
+  secondLogoNavigatesHome?: boolean; // New option: Does second logo navigate to Home?
 }
 
 const loadFont = (fontName: string = defaultFont): void => {
@@ -248,13 +252,83 @@ const injectThemeStyle = ({
   document.head.appendChild(style);
 };
 
+// Improved function to get the active cluster
+const getActiveCluster = (): string | null => {
+  // First try to get from URL - match patterns like /c/{clusterName}/... or /cluster/{clusterName}/...
+  const pathMatch = window.location.pathname.match(/\/(?:c|cluster)\/([^\/]+)/);
+  if (pathMatch && pathMatch[1]) {
+    return pathMatch[1];
+  }
+
+  // Try to find active cluster in localStorage
+  try {
+    const storageKeys = Object.keys(localStorage);
+    for (const key of storageKeys) {
+      if (key.includes('active-cluster')) {
+        try {
+          const activeCluster = JSON.parse(localStorage.getItem(key) || '');
+          if (activeCluster && typeof activeCluster === 'string') {
+            return activeCluster;
+          }
+        } catch (e) {
+          console.error('Error parsing active cluster from localStorage:', e);
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Error accessing localStorage:', e);
+  }
+
+  // Return the specific cluster name as fallback
+  return specificClusterName;
+};
+
+// Function to navigate to cluster overview
+const navigateToClusterOverview = () => {
+  const activeCluster = getActiveCluster();
+  console.log('Navigating to cluster overview for:', activeCluster);
+
+  if (activeCluster) {
+    // Try different navigation strategies:
+
+    // 1. First check if we're already in a cluster context
+    if (
+      window.location.pathname.includes(`/c/${activeCluster}/`) ||
+      window.location.pathname.includes(`/cluster/${activeCluster}/`)
+    ) {
+      // If already in cluster context, navigate to the cluster's overview page
+      window.location.href = `/c/${activeCluster}/overview`;
+      return;
+    }
+
+    // 2. Try to find and click the cluster card
+    const clusterCardSelector = `[data-testid="cluster-card-${activeCluster}"]`;
+    const clusterCard = document.querySelector(clusterCardSelector);
+    if (clusterCard) {
+      console.log('Found cluster card, clicking it');
+      (clusterCard as HTMLElement).click();
+      return;
+    }
+
+    // 3. Direct URL navigation to the cluster page
+    console.log('Navigating directly to cluster URL');
+    window.location.href = `/c/${activeCluster}`;
+  } else {
+    // Fallback to clusters page
+    console.log('No active cluster found, going to clusters page');
+    window.location.href = '/clusters';
+  }
+};
+
 // Function to inject logo styles and create the drawer logos
 const injectDrawerLogos = (
   k8sLogoURL: string = defaultK8sLogoURL,
   clusterUIPath: string = defaultClusterUIPath,
   secondLogoURL: string = defaultSecondLogoURL,
   secondLogoText: string = defaultSecondLogoText,
-  secondLogoPath: string = defaultSecondLogoPath
+  secondLogoPath: string = defaultSecondLogoPath,
+  k8sLogoIsLink: boolean = false, // Default: false
+  secondLogoIsLink: boolean = false // Default: false
 ): void => {
   // Remove all previous logo containers completely
   const existingContainers = document.querySelectorAll('.drawer-logo-container');
@@ -323,7 +397,7 @@ const injectDrawerLogos = (
     // Create a container for all logos
     const logoContainer = document.createElement('div');
     logoContainer.className = 'drawer-logo-container';
-    logoContainer.setAttribute('data-logo-container', 'true'); // Add data attribute for easier identification
+    logoContainer.setAttribute('data-logo-container', 'true');
 
     // Create a row for the logos
     const logoRow = document.createElement('div');
@@ -344,8 +418,15 @@ const injectDrawerLogos = (
     k8sLogoText.textContent = 'Cluster Overview';
     k8sLogoDiv.appendChild(k8sLogoText);
 
+    // Improved navigation logic for cluster overview
     k8sLogoDiv.addEventListener('click', () => {
-      window.location.href = clusterUIPath;
+      if (k8sLogoIsLink) {
+        // Open in a new tab if it's a link
+        window.open(clusterUIPath, '_blank');
+      } else {
+        // Navigate to the cluster overview
+        navigateToClusterOverview();
+      }
     });
 
     k8sLogoDiv.title = 'Go to Cluster Overview';
@@ -366,11 +447,10 @@ const injectDrawerLogos = (
       secondLogoTextDiv.textContent = secondLogoText;
       secondLogoDiv.appendChild(secondLogoTextDiv);
 
-      secondLogoDiv.addEventListener('click', () => {
-        window.location.href = secondLogoPath;
-      });
+      // Directly call navigateToHomePage when the second logo is clicked
+      secondLogoDiv.addEventListener('click', navigateToHomePage);
 
-      secondLogoDiv.title = `Go to ${secondLogoText}`;
+      secondLogoDiv.title = `Go to ${secondLogoText} (Home)`;
       logoRow.appendChild(secondLogoDiv);
     }
 
@@ -380,6 +460,18 @@ const injectDrawerLogos = (
     console.log('Logos added to drawer:', logoContainer);
   } else {
     console.error('Drawer element not found');
+  }
+};
+
+const navigateToHomePage = () => {
+  const homeButton = Array.from(document.querySelectorAll('.MuiListItem-root'))
+    .find(item => item.textContent?.trim() === 'Home');
+
+  if (homeButton) {
+    console.log('Found the Home button, clicking it.');
+    (homeButton as HTMLElement).click();
+  } else {
+    console.log('Could not find the Home button in the sidebar.');
   }
 };
 
@@ -407,13 +499,14 @@ const addDrawerLogos = () => {
     config.clusterUIPath || defaultClusterUIPath,
     config.secondLogoURL || defaultSecondLogoURL,
     config.secondLogoText || defaultSecondLogoText,
-    config.secondLogoPath || defaultSecondLogoPath
+    config.secondLogoPath || defaultSecondLogoPath,
+    config.k8sLogoIsLink, // Pass the new option
+    config.secondLogoIsLink
   );
   return true;
 };
 
 // Improved logo loading with multiple retry strategies
-// This ensures logos are added immediately when the app loads
 const initializeLogos = () => {
   // First try - immediate attempt
   const immediate = addDrawerLogos();
@@ -485,10 +578,16 @@ window.addEventListener('load', () => {
   if (!document.querySelector('.drawer-logo-container')) {
     addDrawerLogos();
   }
+
+  // Add navigation for navigation events using popstate
+  window.addEventListener('popstate', () => {
+    if (!document.querySelector('.drawer-logo-container')) {
+      addDrawerLogos();
+    }
+  });
 });
 
 // Add a route change listener to ensure logos persist across route changes
-// This uses a MutationObserver to detect DOM changes that might indicate navigation
 const routeObserver = new MutationObserver(mutations => {
   // Check if we should add logos
   const shouldAddLogos =
@@ -549,6 +648,8 @@ const ThemeCustomizer = () => {
   const [secondLogoPath, setSecondLogoPath] = useState(
     config.secondLogoPath || defaultSecondLogoPath
   );
+  const [k8sLogoIsLink, setK8sLogoIsLink] = useState(config.k8sLogoIsLink || false); // New state
+  const [secondLogoIsLink, setSecondLogoIsLink] = useState(config.secondLogoIsLink || false); // New state
 
   // Apply logos on component mount
   useEffect(() => {
@@ -569,12 +670,22 @@ const ThemeCustomizer = () => {
       secondLogoURL,
       secondLogoText,
       secondLogoPath,
+      k8sLogoIsLink, // Save the new option
+      secondLogoIsLink, // Save the new option
     };
     store.set(newConfig);
     injectThemeStyle(newConfig);
     if (font) loadFont(font);
     if (logoURL) registerAppLogo(SimpleLogo);
-    injectDrawerLogos(k8sLogoURL, clusterUIPath, secondLogoURL, secondLogoText, secondLogoPath);
+    injectDrawerLogos(
+      k8sLogoURL,
+      clusterUIPath,
+      secondLogoURL,
+      secondLogoText,
+      secondLogoPath,
+      newConfig.k8sLogoIsLink, // Pass it to injectDrawerLogos
+      newConfig.secondLogoIsLink
+    );
   };
 
   const resetPreferences = () => {
@@ -588,6 +699,8 @@ const ThemeCustomizer = () => {
       secondLogoURL: defaultSecondLogoURL,
       secondLogoText: defaultSecondLogoText,
       secondLogoPath: defaultSecondLogoPath,
+      k8sLogoIsLink: false, // Reset to default
+      secondLogoIsLink: false, // Reset to default
     };
     setPrimaryColor(defaultPrimary);
     setSecondaryColor(defaultSecondary);
@@ -598,6 +711,8 @@ const ThemeCustomizer = () => {
     setSecondLogoURL(defaultSecondLogoURL);
     setSecondLogoText(defaultSecondLogoText);
     setSecondLogoPath(defaultSecondLogoPath);
+    setK8sLogoIsLink(false);
+    setSecondLogoIsLink(false);
     store.set(resetConfig);
     injectThemeStyle(resetConfig);
     loadFont(defaultFont);
@@ -607,7 +722,9 @@ const ThemeCustomizer = () => {
       defaultClusterUIPath,
       defaultSecondLogoURL,
       defaultSecondLogoText,
-      defaultSecondLogoPath
+      defaultSecondLogoPath,
+      false, // Pass default values
+      false
     );
   };
 
@@ -678,6 +795,18 @@ const ThemeCustomizer = () => {
         InputLabelProps={{ shrink: true }}
         helperText="Enter a valid image URL for the Kubernetes logo (PNG recommended)"
       />
+      <FormControl fullWidth margin="dense">
+        <InputLabel id="k8s-logo-link-label">Kubernetes Logo is a Link</InputLabel>
+        <Select
+          labelId="k8s-logo-link-label"
+          value={k8sLogoIsLink}
+          onChange={e => setK8sLogoIsLink(e.target.value)}
+          label="Kubernetes Logo is a Link"
+        >
+          <MenuItem value={false}>No</MenuItem>
+          <MenuItem value={true}>Yes</MenuItem>
+        </Select>
+      </FormControl>
 
       <TextField
         label="Cluster UI Path"
@@ -687,7 +816,7 @@ const ThemeCustomizer = () => {
         variant="outlined"
         margin="dense"
         InputLabelProps={{ shrink: true }}
-        helperText="Enter the path to navigate to when clicking the Kubernetes logo"
+        helperText="Path prefix for cluster UI pages (leave empty for direct cluster access or enter full URL)"
       />
 
       <Typography variant="subtitle1" mt={3} mb={1}>
@@ -724,8 +853,20 @@ const ThemeCustomizer = () => {
         variant="outlined"
         margin="dense"
         InputLabelProps={{ shrink: true }}
-        helperText="Enter the path to navigate to when clicking the second logo"
+        helperText="Enter the path/URL to navigate to when clicking the second logo"
       />
+      <FormControl fullWidth margin="dense">
+        <InputLabel id="second-logo-link-label">Second Logo is a Link</InputLabel>
+        <Select
+          labelId="second-logo-link-label"
+          value={secondLogoIsLink}
+          onChange={e => setSecondLogoIsLink(e.target.value)}
+          label="Second Logo is a Link"
+        >
+          <MenuItem value={false}>No</MenuItem>
+          <MenuItem value={true}>Yes</MenuItem>
+        </Select>
+      </FormControl>
 
       <Box mt={2} display="flex" justifyContent="space-between" gap={2}>
         <Button onClick={savePreferences} variant="contained">
