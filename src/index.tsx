@@ -320,7 +320,38 @@ const navigateToClusterOverview = () => {
   }
 };
 
-// Function to inject logo styles and create the drawer logos
+// Function to check if drawer is collapsed and update classes
+const checkDrawerCollapsed = (drawer: Element): void => {
+  // Check width to determine if collapsed
+  // Typically, collapsed drawer is around 60px wide
+  const isCollapsed = drawer.clientWidth < 100;
+
+  if (isCollapsed) {
+    drawer.classList.add('collapsed');
+  } else {
+    drawer.classList.remove('collapsed');
+  }
+};
+
+// Function to detect drawer collapse state and update CSS classes
+const setupDrawerCollapseDetection = (drawer: Element): void => {
+  // Initial check
+  checkDrawerCollapsed(drawer);
+
+  // Set up resize observer
+  const resizeObserver = new ResizeObserver(() => {
+    checkDrawerCollapsed(drawer);
+  });
+
+  resizeObserver.observe(drawer);
+
+  // Also check on window resize
+  window.addEventListener('resize', () => {
+    checkDrawerCollapsed(drawer);
+  });
+};
+
+// UPDATED: Function to inject logo styles and create the drawer logos
 const injectDrawerLogos = (
   k8sLogoURL: string = defaultK8sLogoURL,
   clusterUIPath: string = defaultClusterUIPath,
@@ -350,12 +381,21 @@ const injectDrawerLogos = (
       justify-content: center;
       z-index: 1200;
     }
-    .logo-row {
+    .logo-layout {
       display: flex;
       justify-content: center;
       align-items: center;
       gap: 16px;
       width: 100%;
+      transition: flex-direction 0.3s ease;
+    }
+    /* When drawer is collapsed, stack logos vertically */
+    .MuiDrawer-paper.collapsed .logo-layout {
+      flex-direction: column;
+    }
+    /* When drawer is expanded, show logos horizontally */
+    .MuiDrawer-paper:not(.collapsed) .logo-layout {
+      flex-direction: row;
     }
     .drawer-logo {
       display: flex;
@@ -378,6 +418,10 @@ const injectDrawerLogos = (
       font-size: 12px;
       text-align: center;
     }
+    /* Hide text when drawer is collapsed */
+    .MuiDrawer-paper.collapsed .logo-text {
+      display: none;
+    }
     .drawer-logo:hover {
       opacity: 0.8;
       transition: all 0.2s ease;
@@ -390,7 +434,6 @@ const injectDrawerLogos = (
   document.head.appendChild(style);
 
   // Create the logo elements and append them to the drawer
-  // Find the drawer
   const drawer = document.querySelector('.MuiDrawer-paper');
 
   if (drawer) {
@@ -399,10 +442,10 @@ const injectDrawerLogos = (
     logoContainer.className = 'drawer-logo-container';
     logoContainer.setAttribute('data-logo-container', 'true');
 
-    // Create a row for the logos
-    const logoRow = document.createElement('div');
-    logoRow.className = 'logo-row';
-    logoContainer.appendChild(logoRow);
+    // Create a layout container for the logos
+    const logoLayout = document.createElement('div');
+    logoLayout.className = 'logo-layout';
+    logoContainer.appendChild(logoLayout);
 
     // Create the Kubernetes logo
     const k8sLogoDiv = document.createElement('div');
@@ -418,7 +461,7 @@ const injectDrawerLogos = (
     k8sLogoText.textContent = 'Cluster Overview';
     k8sLogoDiv.appendChild(k8sLogoText);
 
-    // Improved navigation logic for cluster overview
+    // Navigation logic for cluster overview
     k8sLogoDiv.addEventListener('click', () => {
       if (k8sLogoIsLink) {
         // Open in a new tab if it's a link
@@ -430,7 +473,7 @@ const injectDrawerLogos = (
     });
 
     k8sLogoDiv.title = 'Go to Cluster Overview';
-    logoRow.appendChild(k8sLogoDiv);
+    logoLayout.appendChild(k8sLogoDiv);
 
     // Create the second logo if URL is provided
     if (secondLogoURL) {
@@ -447,17 +490,20 @@ const injectDrawerLogos = (
       secondLogoTextDiv.textContent = secondLogoText;
       secondLogoDiv.appendChild(secondLogoTextDiv);
 
-      // Directly call navigateToHomePage when the second logo is clicked
+      // Navigate to home when second logo is clicked
       secondLogoDiv.addEventListener('click', navigateToHomePage);
 
       secondLogoDiv.title = `Go to ${secondLogoText} (Home)`;
-      logoRow.appendChild(secondLogoDiv);
+      logoLayout.appendChild(secondLogoDiv);
     }
 
     // Append to drawer - after the last list item
     drawer.appendChild(logoContainer);
 
-    console.log('Logos added to drawer:', logoContainer);
+    // Set up mutation observer to detect drawer collapse/expand
+    setupDrawerCollapseDetection(drawer);
+
+    console.log('Logos added to drawer with responsive layout');
   } else {
     console.error('Drawer element not found');
   }
