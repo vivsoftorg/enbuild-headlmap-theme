@@ -464,8 +464,9 @@ const injectDrawerLogos = (
 };
 
 const navigateToHomePage = () => {
-  const homeButton = Array.from(document.querySelectorAll('.MuiListItem-root'))
-    .find(item => item.textContent?.trim() === 'Home');
+  const homeButton = Array.from(document.querySelectorAll('.MuiListItem-root')).find(
+    item => item.textContent?.trim() === 'Home'
+  );
 
   if (homeButton) {
     console.log('Found the Home button, clicking it.');
@@ -844,30 +845,6 @@ const ThemeCustomizer = () => {
         InputLabelProps={{ shrink: true }}
         helperText="The text to display below the second logo"
       />
-
-      <TextField
-        label="Second Logo Path"
-        value={secondLogoPath}
-        onChange={e => setSecondLogoPath(e.target.value)}
-        fullWidth
-        variant="outlined"
-        margin="dense"
-        InputLabelProps={{ shrink: true }}
-        helperText="Enter the path/URL to navigate to when clicking the second logo"
-      />
-      <FormControl fullWidth margin="dense">
-        <InputLabel id="second-logo-link-label">Second Logo is a Link</InputLabel>
-        <Select
-          labelId="second-logo-link-label"
-          value={secondLogoIsLink}
-          onChange={e => setSecondLogoIsLink(e.target.value)}
-          label="Second Logo is a Link"
-        >
-          <MenuItem value={false}>No</MenuItem>
-          <MenuItem value={true}>Yes</MenuItem>
-        </Select>
-      </FormControl>
-
       <Box mt={2} display="flex" justifyContent="space-between" gap={2}>
         <Button onClick={savePreferences} variant="contained">
           Save
