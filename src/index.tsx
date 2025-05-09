@@ -509,18 +509,157 @@ const injectDrawerLogos = (
   }
 };
 
+// Updated navigateToHomePage function to specifically target the home icon seen in the screenshot
 const navigateToHomePage = () => {
-  const homeButton = Array.from(document.querySelectorAll('.MuiListItem-root')).find(
-    item => item.textContent?.trim() === 'Home'
-  );
+  console.log('Attempting to find and click the home icon');
 
-  if (homeButton) {
-    console.log('Found the Home button, clicking it.');
-    (homeButton as HTMLElement).click();
-  } else {
-    console.log('Could not find the Home button in the sidebar.');
+  // Based on the screenshot, find the home icon specifically
+  // First priority: Try to find by position in the sidebar (appears to be the first/top icon)
+  const sidebarIcons = document.querySelectorAll('.MuiDrawer-paper svg, .MuiDrawer-paper img');
+
+  // Try the first icon in the sidebar (likely the home icon based on screenshot)
+  if (sidebarIcons.length > 0) {
+    const firstIcon = sidebarIcons[0];
+    console.log('Found first icon in sidebar, attempting to click its container');
+
+    // Navigate up to find the clickable container
+    let clickableElement = firstIcon as HTMLElement;
+    while (
+      clickableElement &&
+      !clickableElement.classList.contains('MuiListItem-root') &&
+      !clickableElement.classList.contains('MuiListItemButton-root') &&
+      !clickableElement.onclick
+    ) {
+      clickableElement = clickableElement.parentElement as HTMLElement;
+      if (!clickableElement) break;
+    }
+
+    if (clickableElement) {
+      clickableElement.click();
+      console.log('Clicked the presumed home icon container');
+      return true;
+    }
   }
+
+  // Second try: Look specifically for a house/home shaped icon
+  // This uses more specific attribute and element targeting based on the screenshot
+  const homeIconSelectors = [
+    // Target the specific home icon element - using its position in the DOM
+    '.MuiDrawer-paper > div:first-child svg',
+    '.MuiDrawer-paper > ul > li:first-child',
+    '.MuiDrawer-paper button:first-of-type',
+
+    // Try finding by the house/home icon shape
+    'svg[viewBox="0 0 24 24"]:has(path[d*="m3 9 9-7 9 7"])',
+    'svg:has(path[d*="home"])',
+    'svg:has(path[d*="house"])',
+
+    // Try finding by the element's location in viewport (top of sidebar)
+    '.MuiDrawer-paper > *:first-child',
+
+    // CSS selector for elements that visually look like a house icon - specifically for this app
+    'div[style*="house.svg"]',
+    'img[src*="house"], img[src*="home"]',
+    'svg path[d*="M12"]',
+  ];
+
+  for (const selector of homeIconSelectors) {
+    try {
+      const potentialHomeIcon = document.querySelector(selector);
+      if (potentialHomeIcon) {
+        console.log(`Found potential home icon with selector: ${selector}`);
+
+        // Find clickable parent
+        let clickable = potentialHomeIcon as HTMLElement;
+        let attempts = 0;
+        while (clickable && attempts < 5) {
+          if (
+            clickable.onclick ||
+            clickable.tagName === 'BUTTON' ||
+            clickable.tagName === 'A' ||
+            clickable.classList.contains('MuiListItem-root') ||
+            clickable.classList.contains('MuiListItemButton-root')
+          ) {
+            break;
+          }
+          clickable = clickable.parentElement as HTMLElement;
+          attempts++;
+        }
+
+        if (clickable) {
+          console.log('Clicking the home icon container');
+          clickable.click();
+          return true;
+        }
+      }
+    } catch (error) {
+      console.error(`Error with selector ${selector}:`, error);
+    }
+  }
+
+  // Last resort - brute force approach: click on any element that might be the home icon
+  // based on its visual appearance or position in the DOM
+  console.log('Attempting brute force approach to find home icon');
+
+  // Get all SVGs in the sidebar
+  const allSidebarSVGs = document.querySelectorAll('.MuiDrawer-paper svg');
+  for (let i = 0; i < allSidebarSVGs.length; i++) {
+    const svg = allSidebarSVGs[i] as SVGSVGElement;
+
+    // Check if this SVG is at the top of the sidebar (likely the home icon)
+    const rect = svg.getBoundingClientRect();
+    if (rect.top < window.innerHeight / 3) {
+      // In the top third of the viewport
+      console.log('Found an SVG near the top of the sidebar, trying to click it');
+
+      // Find the clickable parent
+      let clickableParent = svg.parentElement;
+      while (
+        clickableParent &&
+        !clickableParent.classList.contains('MuiListItem-root') &&
+        !clickableParent.onclick
+      ) {
+        clickableParent = clickableParent.parentElement;
+        if (!clickableParent) break;
+      }
+
+      if (clickableParent) {
+        console.log('Clicking a potential home icon');
+        (clickableParent as HTMLElement).click();
+        return true;
+      } else {
+        // Try clicking the SVG itself
+        try {
+          (svg as any).click();
+          console.log('Clicked the SVG directly');
+          return true;
+        } catch (e) {
+          console.error('Could not click the SVG:', e);
+        }
+      }
+    }
+  }
+
+  console.log('Failed to find and click the home icon');
+  return false;
 };
+
+// Function to facilitate navigation to home page
+const setupHomeNavigation = () => {
+  // If there's a "Second Logo" that should navigate to home
+  const secondLogoDiv = document.querySelector('.drawer-logo.second-logo');
+  if (secondLogoDiv) {
+    secondLogoDiv.addEventListener('click', navigateToHomePage);
+    console.log('Set up second logo to navigate to home');
+  }
+
+  // For testing purposes
+  console.log('Home navigation setup complete');
+};
+
+// Call the setup function whenever appropriate
+// For example, add this to your addDrawerLogos function:
+// setupHomeNavigation();
 
 const store = new ConfigStore<ThemeOptions>('enbuild-customiser-theme');
 
