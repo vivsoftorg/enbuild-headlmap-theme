@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import {
   AppLogoProps,
   ConfigStore,
@@ -14,7 +15,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const defaultPrimary = '#05A2C2';
 const defaultSecondary = '#ffffff';
@@ -990,7 +991,7 @@ const ThemeCustomizer = () => {
           label="Kubernetes Logo is a Link"
         >
           <MenuItem value={false}>No</MenuItem>
-          <MenuItem value={true}>Yes</MenuItem>
+          <MenuItem value>Yes</MenuItem>
         </Select>
       </FormControl>
 
