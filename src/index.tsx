@@ -4,6 +4,7 @@ import {
   registerAppLogo,
   registerPluginSettings,
 } from '@kinvolk/headlamp-plugin/lib';
+// Import MUI icons - we'll use Storage for Kubernetes
 import {
   Box,
   Button,
@@ -22,15 +23,7 @@ const defaults = {
   secondary: '#ffffff',
   font: 'Inter',
   logoURL: 'https://enbuild-docs.vivplatform.io/images/emma/enbuild-logo.png',
-  k8sLogoURL:
-    'https://raw.githubusercontent.com/cncf/artwork/master/projects/kubernetes/icon/color/kubernetes-icon-color.png',
   clusterUIPath: '',
-  secondLogoURL: '',
-  secondLogoText: 'Second Logo',
-  secondLogoPath: '/',
-  clusterName: 'k3d-headlamp',
-  k8sLogoIsLink: false,
-  secondLogoIsLink: false,
 };
 
 const fontOptions = [
@@ -56,13 +49,7 @@ interface ThemeOptions {
   secondaryColor?: string;
   font?: string;
   logoURL?: string;
-  k8sLogoURL?: string;
   clusterUIPath?: string;
-  secondLogoURL?: string;
-  secondLogoText?: string;
-  secondLogoPath?: string;
-  k8sLogoIsLink?: boolean;
-  secondLogoIsLink?: boolean;
 }
 
 // Initialize the config store
@@ -208,7 +195,7 @@ const getActiveCluster = () => {
     console.error('Error accessing localStorage:', e);
   }
 
-  return defaults.clusterName;
+  return 'k3d-headlamp';
 };
 
 const navigateToClusterOverview = () => {
@@ -315,15 +302,7 @@ const setupDrawerCollapseDetection = (drawer: Element) => {
   window.addEventListener('resize', () => checkDrawerCollapsed(drawer));
 };
 
-const injectDrawerLogos = (
-  k8sLogoURL = defaults.k8sLogoURL,
-  clusterUIPath = defaults.clusterUIPath,
-  secondLogoURL = defaults.secondLogoURL,
-  secondLogoText = defaults.secondLogoText,
-  secondLogoPath = defaults.secondLogoPath,
-  k8sLogoIsLink = false,
-  secondLogoIsLink = false
-) => {
+const injectDrawerLogos = (clusterUIPath = defaults.clusterUIPath) => {
   // Remove existing logos
   document.querySelectorAll('.drawer-logo-container').forEach(c => c.remove());
 
@@ -362,13 +341,20 @@ const injectDrawerLogos = (
       cursor: pointer;
       flex: 1;
     }
-    .drawer-logo img {
+    .drawer-logo .mui-icon {
       width: 40px;
       height: 40px;
-      object-fit: contain;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       background-color: white;
       border-radius: 4px;
       padding: 4px;
+    }
+    .drawer-logo .mui-icon svg {
+      width: 32px;
+      height: 32px;
+      color: ${defaults.primary} !important;
     }
     .drawer-logo .logo-text {
       margin-top: 8px;
@@ -382,7 +368,7 @@ const injectDrawerLogos = (
       opacity: 0.8;
       transition: all 0.2s ease;
     }
-    .drawer-logo:hover img {
+    .drawer-logo:hover .mui-icon {
       transform: scale(1.05);
       box-shadow: 0 0 5px rgba(255,255,255,0.3);
     }
@@ -405,50 +391,73 @@ const injectDrawerLogos = (
   logoLayout.className = 'logo-layout';
   logoContainer.appendChild(logoLayout);
 
-  // K8s logo
+  // K8s logo with MUI Storage icon
   const k8sLogoDiv = document.createElement('div');
   k8sLogoDiv.className = 'drawer-logo kubernetes-logo';
 
-  const k8sLogoImg = document.createElement('img');
-  k8sLogoImg.src = k8sLogoURL;
-  k8sLogoImg.alt = 'Kubernetes';
-  k8sLogoDiv.appendChild(k8sLogoImg);
+  // Create the MUI icon container
+  const k8sIconContainer = document.createElement('div');
+  k8sIconContainer.className = 'mui-icon';
+  k8sLogoDiv.appendChild(k8sIconContainer);
+
+  // Use document.createElementNS for SVG
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('width', '32');
+  svg.setAttribute('height', '32');
+
+  // Create the Storage icon path
+  const path = document.createElementNS(svgNS, 'path');
+  path.setAttribute(
+    'd',
+    'M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z'
+  );
+  path.setAttribute('fill', defaults.primary);
+  svg.appendChild(path);
+
+  k8sIconContainer.appendChild(svg);
 
   const k8sLogoText = document.createElement('div');
   k8sLogoText.className = 'logo-text';
   k8sLogoText.textContent = 'Cluster Overview';
   k8sLogoDiv.appendChild(k8sLogoText);
 
-  k8sLogoDiv.addEventListener('click', () => {
-    if (k8sLogoIsLink) {
-      window.open(clusterUIPath, '_blank');
-    } else {
-      navigateToClusterOverview();
-    }
-  });
-
+  k8sLogoDiv.addEventListener('click', navigateToClusterOverview);
   k8sLogoDiv.title = 'Go to Cluster Overview';
   logoLayout.appendChild(k8sLogoDiv);
 
-  // Second logo (if URL provided)
-  if (secondLogoURL) {
-    const secondLogoDiv = document.createElement('div');
-    secondLogoDiv.className = 'drawer-logo second-logo';
+  // Home icon
+  const homeLogoDiv = document.createElement('div');
+  homeLogoDiv.className = 'drawer-logo home-logo';
 
-    const secondLogoImg = document.createElement('img');
-    secondLogoImg.src = secondLogoURL;
-    secondLogoImg.alt = secondLogoText;
-    secondLogoDiv.appendChild(secondLogoImg);
+  // Create the MUI icon container for Home
+  const homeIconContainer = document.createElement('div');
+  homeIconContainer.className = 'mui-icon';
+  homeLogoDiv.appendChild(homeIconContainer);
 
-    const secondLogoTextDiv = document.createElement('div');
-    secondLogoTextDiv.className = 'logo-text';
-    secondLogoTextDiv.textContent = secondLogoText;
-    secondLogoDiv.appendChild(secondLogoTextDiv);
+  // Create Home icon SVG
+  const homeSvg = document.createElementNS(svgNS, 'svg');
+  homeSvg.setAttribute('viewBox', '0 0 24 24');
+  homeSvg.setAttribute('width', '32');
+  homeSvg.setAttribute('height', '32');
 
-    secondLogoDiv.addEventListener('click', navigateToHomePage);
-    secondLogoDiv.title = `Go to ${secondLogoText} (Home)`;
-    logoLayout.appendChild(secondLogoDiv);
-  }
+  // Create the Home icon path
+  const homePath = document.createElementNS(svgNS, 'path');
+  homePath.setAttribute('d', 'M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z');
+  homePath.setAttribute('fill', defaults.primary);
+  homeSvg.appendChild(homePath);
+
+  homeIconContainer.appendChild(homeSvg);
+
+  const homeLogoText = document.createElement('div');
+  homeLogoText.className = 'logo-text';
+  homeLogoText.textContent = 'Home';
+  homeLogoDiv.appendChild(homeLogoText);
+
+  homeLogoDiv.addEventListener('click', navigateToHomePage);
+  homeLogoDiv.title = 'Go to Home';
+  logoLayout.appendChild(homeLogoDiv);
 
   drawer.appendChild(logoContainer);
   setupDrawerCollapseDetection(drawer);
@@ -514,15 +523,7 @@ const addDrawerLogos = () => {
 
   if (!drawer) return false;
 
-  injectDrawerLogos(
-    config.k8sLogoURL || defaults.k8sLogoURL,
-    config.clusterUIPath || defaults.clusterUIPath,
-    config.secondLogoURL || defaults.secondLogoURL,
-    config.secondLogoText || defaults.secondLogoText,
-    config.secondLogoPath || defaults.secondLogoPath,
-    config.k8sLogoIsLink,
-    config.secondLogoIsLink
-  );
+  injectDrawerLogos(config.clusterUIPath || defaults.clusterUIPath);
 
   return true;
 };
@@ -600,21 +601,9 @@ const ThemeCustomizer = () => {
   const [secondaryColor, setSecondaryColor] = useState(config.secondaryColor || defaults.secondary);
   const [font, setFont] = useState(config.font || defaults.font);
   const [logoURL, setLogoURL] = useState(config.logoURL || defaults.logoURL);
-  const [k8sLogoURL, setK8sLogoURL] = useState(config.k8sLogoURL || defaults.k8sLogoURL);
   const [clusterUIPath, setClusterUIPath] = useState(
     config.clusterUIPath || defaults.clusterUIPath
   );
-  const [secondLogoURL, setSecondLogoURL] = useState(
-    config.secondLogoURL || defaults.secondLogoURL
-  );
-  const [secondLogoText, setSecondLogoText] = useState(
-    config.secondLogoText || defaults.secondLogoText
-  );
-  const [secondLogoPath, setSecondLogoPath] = useState(
-    config.secondLogoPath || defaults.secondLogoPath
-  );
-  const [k8sLogoIsLink, setK8sLogoIsLink] = useState(config.k8sLogoIsLink || false);
-  const [secondLogoIsLink, setSecondLogoIsLink] = useState(config.secondLogoIsLink || false);
 
   // Ensure logos are present when settings opened
   useEffect(() => {
@@ -629,13 +618,7 @@ const ThemeCustomizer = () => {
       secondaryColor,
       font,
       logoURL,
-      k8sLogoURL,
       clusterUIPath,
-      secondLogoURL,
-      secondLogoText,
-      secondLogoPath,
-      k8sLogoIsLink,
-      secondLogoIsLink,
     };
 
     store.set(newConfig);
@@ -643,15 +626,7 @@ const ThemeCustomizer = () => {
     if (font) loadFont(font);
     if (logoURL) registerAppLogo(SimpleLogo);
 
-    injectDrawerLogos(
-      k8sLogoURL,
-      clusterUIPath,
-      secondLogoURL,
-      secondLogoText,
-      secondLogoPath,
-      newConfig.k8sLogoIsLink,
-      newConfig.secondLogoIsLink
-    );
+    injectDrawerLogos(clusterUIPath);
   };
 
   const resetPreferences = () => {
@@ -660,13 +635,7 @@ const ThemeCustomizer = () => {
       secondaryColor: defaults.secondary,
       font: defaults.font,
       logoURL: defaults.logoURL,
-      k8sLogoURL: defaults.k8sLogoURL,
       clusterUIPath: defaults.clusterUIPath,
-      secondLogoURL: defaults.secondLogoURL,
-      secondLogoText: defaults.secondLogoText,
-      secondLogoPath: defaults.secondLogoPath,
-      k8sLogoIsLink: false,
-      secondLogoIsLink: false,
     };
 
     // Update state
@@ -674,13 +643,7 @@ const ThemeCustomizer = () => {
     setSecondaryColor(defaults.secondary);
     setFont(defaults.font);
     setLogoURL(defaults.logoURL);
-    setK8sLogoURL(defaults.k8sLogoURL);
     setClusterUIPath(defaults.clusterUIPath);
-    setSecondLogoURL(defaults.secondLogoURL);
-    setSecondLogoText(defaults.secondLogoText);
-    setSecondLogoPath(defaults.secondLogoPath);
-    setK8sLogoIsLink(false);
-    setSecondLogoIsLink(false);
 
     // Apply changes
     store.set(resetConfig);
@@ -688,15 +651,7 @@ const ThemeCustomizer = () => {
     loadFont(defaults.font);
     registerAppLogo(SimpleLogo);
 
-    injectDrawerLogos(
-      defaults.k8sLogoURL,
-      defaults.clusterUIPath,
-      defaults.secondLogoURL,
-      defaults.secondLogoText,
-      defaults.secondLogoPath,
-      false,
-      false
-    );
+    injectDrawerLogos(defaults.clusterUIPath);
   };
 
   return (
@@ -757,30 +712,6 @@ const ThemeCustomizer = () => {
       />
 
       <TextField
-        label="Kubernetes Logo URL"
-        value={k8sLogoURL}
-        onChange={e => setK8sLogoURL(e.target.value)}
-        fullWidth
-        variant="outlined"
-        margin="dense"
-        InputLabelProps={{ shrink: true }}
-        helperText="Enter a valid image URL for the Kubernetes logo (PNG recommended)"
-      />
-
-      <FormControl fullWidth margin="dense">
-        <InputLabel id="k8s-logo-link-label">Kubernetes Logo is a Link</InputLabel>
-        <Select
-          labelId="k8s-logo-link-label"
-          value={k8sLogoIsLink}
-          onChange={e => setK8sLogoIsLink(e.target.value)}
-          label="Kubernetes Logo is a Link"
-        >
-          <MenuItem value={false}>No</MenuItem>
-          <MenuItem value={true}>Yes</MenuItem>
-        </Select>
-      </FormControl>
-
-      <TextField
         label="Cluster UI Path"
         value={clusterUIPath}
         onChange={e => setClusterUIPath(e.target.value)}
@@ -789,32 +720,6 @@ const ThemeCustomizer = () => {
         margin="dense"
         InputLabelProps={{ shrink: true }}
         helperText="Path prefix for cluster UI pages (leave empty for direct cluster access or enter full URL)"
-      />
-
-      <Typography variant="subtitle1" mt={3} mb={1}>
-        Second Logo Settings
-      </Typography>
-
-      <TextField
-        label="Second Logo URL"
-        value={secondLogoURL}
-        onChange={e => setSecondLogoURL(e.target.value)}
-        fullWidth
-        variant="outlined"
-        margin="dense"
-        InputLabelProps={{ shrink: true }}
-        helperText="Enter a valid image URL for the second logo (PNG recommended)"
-      />
-
-      <TextField
-        label="Second Logo Text"
-        value={secondLogoText}
-        onChange={e => setSecondLogoText(e.target.value)}
-        fullWidth
-        variant="outlined"
-        margin="dense"
-        InputLabelProps={{ shrink: true }}
-        helperText="The text to display below the second logo"
       />
 
       <Box mt={2} display="flex" justifyContent="space-between" gap={2}>
