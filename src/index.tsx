@@ -420,7 +420,7 @@ const injectDrawerLogos = (clusterUIPath = defaults.clusterUIPath) => {
 
   const k8sLogoText = document.createElement('div');
   k8sLogoText.className = 'logo-text';
-  k8sLogoText.textContent = 'Cluster Overview';
+  k8sLogoText.textContent = 'New UI';
   k8sLogoDiv.appendChild(k8sLogoText);
 
   k8sLogoDiv.addEventListener('click', navigateToClusterOverview);
@@ -710,18 +710,6 @@ const ThemeCustomizer = () => {
         InputLabelProps={{ shrink: true }}
         helperText="Enter a valid image URL for the EnBuild logo (PNG recommended)"
       />
-
-      <TextField
-        label="Cluster UI Path"
-        value={clusterUIPath}
-        onChange={e => setClusterUIPath(e.target.value)}
-        fullWidth
-        variant="outlined"
-        margin="dense"
-        InputLabelProps={{ shrink: true }}
-        helperText="Path prefix for cluster UI pages (leave empty for direct cluster access or enter full URL)"
-      />
-
       <Box mt={2} display="flex" justifyContent="space-between" gap={2}>
         <Button onClick={savePreferences} variant="contained">
           Save
