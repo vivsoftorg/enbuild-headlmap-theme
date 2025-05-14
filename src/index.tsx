@@ -4,7 +4,6 @@ import {
   registerAppLogo,
   registerPluginSettings,
 } from '@kinvolk/headlamp-plugin/lib';
-// Import MUI icons - we'll use Storage for Kubernetes
 import {
   Box,
   Button,
@@ -23,7 +22,6 @@ const defaults = {
   secondary: '#ffffff',
   font: 'Inter',
   logoURL: 'https://enbuild-docs.vivplatform.io/images/emma/enbuild-logo.png',
-  clusterUIPath: '',
 };
 
 const fontOptions = [
@@ -49,7 +47,6 @@ interface ThemeOptions {
   secondaryColor?: string;
   font?: string;
   logoURL?: string;
-  clusterUIPath?: string;
 }
 
 // Initialize the config store
@@ -176,52 +173,7 @@ const injectThemeStyle = (options: ThemeOptions) => {
   document.head.appendChild(style);
 };
 
-// Navigation and Cluster Management
-const getActiveCluster = () => {
-  // Try URL pattern first
-  const pathMatch = window.location.pathname.match(/\/(?:c|cluster)\/([^\/]+)/);
-  if (pathMatch && pathMatch[1]) return pathMatch[1];
-
-  // Try localStorage
-  try {
-    const storageKeys = Object.keys(localStorage);
-    for (const key of storageKeys) {
-      if (key.includes('active-cluster')) {
-        const activeCluster = JSON.parse(localStorage.getItem(key) || '');
-        if (activeCluster && typeof activeCluster === 'string') return activeCluster;
-      }
-    }
-  } catch (e) {
-    console.error('Error accessing localStorage:', e);
-  }
-
-  return 'k3d-headlamp';
-};
-
-const navigateToClusterOverview = () => {
-  const activeCluster = getActiveCluster();
-  console.log('Navigating to cluster overview for:', activeCluster);
-
-  // Already in cluster context
-  if (
-    window.location.pathname.includes(`/c/${activeCluster}/`) ||
-    window.location.pathname.includes(`/cluster/${activeCluster}/`)
-  ) {
-    window.location.href = `/c/${activeCluster}/overview`;
-    return;
-  }
-
-  // Try to find and click the cluster card
-  const clusterCard = document.querySelector(`[data-testid="cluster-card-${activeCluster}"]`);
-  if (clusterCard) {
-    (clusterCard as HTMLElement).click();
-    return;
-  }
-
-  // Direct URL navigation
-  window.location.href = `/c/${activeCluster}`;
-};
-
+// Simplified navigation function for home icon
 const navigateToHomePage = () => {
   // Try different approaches to find the home icon/button
   const homeSelectors = [
@@ -302,7 +254,8 @@ const setupDrawerCollapseDetection = (drawer: Element) => {
   window.addEventListener('resize', () => checkDrawerCollapsed(drawer));
 };
 
-const injectDrawerLogos = (clusterUIPath = defaults.clusterUIPath) => {
+// Core function to add drawer icons
+const injectDrawerIcons = () => {
   // Remove existing logos
   document.querySelectorAll('.drawer-logo-container').forEach(c => c.remove());
 
@@ -379,7 +332,7 @@ const injectDrawerLogos = (clusterUIPath = defaults.clusterUIPath) => {
   const drawer = document.querySelector('.MuiDrawer-paper');
   if (!drawer) {
     console.error('Drawer element not found');
-    return;
+    return false;
   }
 
   // Create container
@@ -420,11 +373,10 @@ const injectDrawerLogos = (clusterUIPath = defaults.clusterUIPath) => {
 
   const k8sLogoText = document.createElement('div');
   k8sLogoText.className = 'logo-text';
-  k8sLogoText.textContent = 'New UI';
+  k8sLogoText.textContent = 'K8s UI';
   k8sLogoDiv.appendChild(k8sLogoText);
 
-  k8sLogoDiv.addEventListener('click', navigateToClusterOverview);
-  k8sLogoDiv.title = 'Go to Cluster Overview';
+  k8sLogoDiv.title = 'Kubernetes UI';
   logoLayout.appendChild(k8sLogoDiv);
 
   // Home icon
@@ -455,6 +407,7 @@ const injectDrawerLogos = (clusterUIPath = defaults.clusterUIPath) => {
   homeLogoText.textContent = 'Home';
   homeLogoDiv.appendChild(homeLogoText);
 
+  // Add the click event to navigate to home
   homeLogoDiv.addEventListener('click', navigateToHomePage);
   homeLogoDiv.title = 'Go to Home';
   logoLayout.appendChild(homeLogoDiv);
@@ -465,16 +418,16 @@ const injectDrawerLogos = (clusterUIPath = defaults.clusterUIPath) => {
   return true;
 };
 
-// Initialize logos with retries
-const initializeLogos = () => {
+// Initialize drawer icons with retries
+const initializeDrawerIcons = () => {
   // Immediate attempt
-  if (addDrawerLogos()) return;
+  if (injectDrawerIcons()) return;
 
   // Watch for DOM changes
   const observer = new MutationObserver((mutations, obs) => {
     for (const mutation of mutations) {
       if (mutation.addedNodes.length && document.querySelector('.MuiDrawer-paper')) {
-        if (addDrawerLogos()) {
+        if (injectDrawerIcons()) {
           obs.disconnect();
           return;
         }
@@ -499,7 +452,7 @@ const initializeLogos = () => {
       return;
     }
 
-    if (addDrawerLogos()) {
+    if (injectDrawerIcons()) {
       clearInterval(retryInterval);
     }
 
@@ -510,35 +463,23 @@ const initializeLogos = () => {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
       if (!document.querySelector('.drawer-logo-container')) {
-        addDrawerLogos();
+        injectDrawerIcons();
       }
     });
   }
 };
 
-// Helper to add logos to drawer
-const addDrawerLogos = () => {
-  const config = store.get() || {};
-  const drawer = document.querySelector('.MuiDrawer-paper');
-
-  if (!drawer) return false;
-
-  injectDrawerLogos(config.clusterUIPath || defaults.clusterUIPath);
-
-  return true;
-};
-
-// Initialize logos and set up event listeners
-initializeLogos();
+// Initialize icons and set up event listeners
+initializeDrawerIcons();
 
 window.addEventListener('load', () => {
   if (!document.querySelector('.drawer-logo-container')) {
-    addDrawerLogos();
+    injectDrawerIcons();
   }
 
   window.addEventListener('popstate', () => {
     if (!document.querySelector('.drawer-logo-container')) {
-      addDrawerLogos();
+      injectDrawerIcons();
     }
   });
 });
@@ -549,7 +490,7 @@ const routeObserver = new MutationObserver(() => {
     !document.querySelector('.drawer-logo-container') &&
     document.querySelector('.MuiDrawer-paper')
   ) {
-    addDrawerLogos();
+    injectDrawerIcons();
   }
 });
 
@@ -601,14 +542,11 @@ const ThemeCustomizer = () => {
   const [secondaryColor, setSecondaryColor] = useState(config.secondaryColor || defaults.secondary);
   const [font, setFont] = useState(config.font || defaults.font);
   const [logoURL, setLogoURL] = useState(config.logoURL || defaults.logoURL);
-  const [clusterUIPath, setClusterUIPath] = useState(
-    config.clusterUIPath || defaults.clusterUIPath
-  );
 
-  // Ensure logos are present when settings opened
+  // Ensure icons are present when settings opened
   useEffect(() => {
     if (!document.querySelector('.drawer-logo-container')) {
-      addDrawerLogos();
+      injectDrawerIcons();
     }
   }, []);
 
@@ -618,7 +556,6 @@ const ThemeCustomizer = () => {
       secondaryColor,
       font,
       logoURL,
-      clusterUIPath,
     };
 
     store.set(newConfig);
@@ -626,7 +563,7 @@ const ThemeCustomizer = () => {
     if (font) loadFont(font);
     if (logoURL) registerAppLogo(SimpleLogo);
 
-    injectDrawerLogos(clusterUIPath);
+    injectDrawerIcons();
   };
 
   const resetPreferences = () => {
@@ -635,7 +572,6 @@ const ThemeCustomizer = () => {
       secondaryColor: defaults.secondary,
       font: defaults.font,
       logoURL: defaults.logoURL,
-      clusterUIPath: defaults.clusterUIPath,
     };
 
     // Update state
@@ -643,7 +579,6 @@ const ThemeCustomizer = () => {
     setSecondaryColor(defaults.secondary);
     setFont(defaults.font);
     setLogoURL(defaults.logoURL);
-    setClusterUIPath(defaults.clusterUIPath);
 
     // Apply changes
     store.set(resetConfig);
@@ -651,7 +586,7 @@ const ThemeCustomizer = () => {
     loadFont(defaults.font);
     registerAppLogo(SimpleLogo);
 
-    injectDrawerLogos(defaults.clusterUIPath);
+    injectDrawerIcons();
   };
 
   return (
@@ -701,14 +636,14 @@ const ThemeCustomizer = () => {
       </FormControl>
 
       <TextField
-        label="EnBuild Logo URL"
+        label="Logo URL"
         value={logoURL}
         onChange={e => setLogoURL(e.target.value)}
         fullWidth
         variant="outlined"
         margin="dense"
         InputLabelProps={{ shrink: true }}
-        helperText="Enter a valid image URL for the EnBuild logo (PNG recommended)"
+        helperText="Enter a valid image URL for the logo (PNG recommended)"
       />
       <Box mt={2} display="flex" justifyContent="space-between" gap={2}>
         <Button onClick={savePreferences} variant="contained">
