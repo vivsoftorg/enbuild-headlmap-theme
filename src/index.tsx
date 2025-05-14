@@ -220,7 +220,14 @@ const navigateTo = path => {
   }
 };
 
-const navigateToHomePage = () => {
+const navigateToHomePage = (drawerElement: HTMLElement | null) => {
+  // Remove custom menu when navigating to home
+  if (drawerElement) {
+    const existingMenu = drawerElement.querySelector('.custom-menu-list');
+    if (existingMenu) {
+      existingMenu.remove();
+    }
+  }
   navigateTo('/dashboard');
 };
 
@@ -245,17 +252,22 @@ const createMenuManager = () => {
 
   return {
     // Switch to default menu
-    showDefaultMenu: drawerElement => {
+    showDefaultMenu: (drawerElement: HTMLElement | null) => {
       if (activeMenuType === 'default') return; // Already showing default menu
       activeMenuType = 'default';
-      createMenuList(defaultMenuItems, drawerElement);
+      if (drawerElement) {
+        // Check if drawerElement exists
+        createMenuList(defaultMenuItems, drawerElement);
+      }
     },
 
     // Switch to k8s menu
-    showK8sMenu: drawerElement => {
+    showK8sMenu: (drawerElement: HTMLElement | null) => {
       if (activeMenuType === 'k8s') return; // Already showing k8s menu
       activeMenuType = 'k8s';
-      createMenuList(k8sMenuItems, drawerElement);
+      if (drawerElement) {
+        createMenuList(k8sMenuItems, drawerElement);
+      }
     },
 
     // Get current menu type
@@ -267,7 +279,7 @@ const createMenuManager = () => {
 const menuManager = createMenuManager();
 
 // Helper to create and insert menu in drawer
-const createMenuList = (items, drawerElement) => {
+const createMenuList = (items: { text: string; path: string }[], drawerElement: HTMLElement) => {
   // Remove existing custom menu if any
   const existingMenu = drawerElement.querySelector('.custom-menu-list');
   if (existingMenu) {
@@ -305,12 +317,12 @@ const createMenuList = (items, drawerElement) => {
 };
 
 // Drawer and Logo Management
-const checkDrawerCollapsed = drawer => {
+const checkDrawerCollapsed = (drawer: HTMLElement) => {
   const isCollapsed = drawer.clientWidth < 100;
   drawer.classList[isCollapsed ? 'add' : 'remove']('collapsed');
 };
 
-const setupDrawerCollapseDetection = drawer => {
+const setupDrawerCollapseDetection = (drawer: HTMLElement) => {
   checkDrawerCollapsed(drawer);
 
   const resizeObserver = new ResizeObserver(() => checkDrawerCollapsed(drawer));
@@ -482,8 +494,9 @@ const injectDrawerIcons = () => {
 
   // Add the click event to navigate to home and restore default menu
   homeLogoDiv.addEventListener('click', () => {
-    menuManager.showDefaultMenu(drawer);
-    navigateToHomePage();
+    const drawerElement = document.querySelector('.MuiDrawer-paper') as HTMLElement;
+    menuManager.showDefaultMenu(drawerElement);
+    navigateToHomePage(drawerElement);
   });
   homeLogoDiv.title = 'Go to Home';
   logoLayout.appendChild(homeLogoDiv);
@@ -771,8 +784,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const target = event.target as HTMLElement;
         const homeLogoElement = target.closest('.home-logo');
         if (homeLogoElement) {
-          menuManager.showDefaultMenu(drawer);
-          navigateToHomePage();
+          const drawerElement = document.querySelector('.MuiDrawer-paper') as HTMLElement;
+          menuManager.showDefaultMenu(drawerElement);
+          navigateToHomePage(drawerElement);
         }
       });
     }
