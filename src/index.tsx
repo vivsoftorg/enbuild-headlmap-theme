@@ -13,6 +13,10 @@ import {
   Select,
   TextField,
   Typography,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 
@@ -99,16 +103,22 @@ const injectThemeStyle = (options: ThemeOptions) => {
       background-color: ${primaryColor} !important;
     }
     .MuiDrawer-paper > .MuiListItem-root, 
-    .MuiDrawer-paper > .MuiListItem-root .MuiListItemText-primary {
+    .MuiDrawer-paper > .MuiListItem-root .MuiListItemText-primary,
+    .MuiDrawer-paper .custom-menu-list .MuiListItem-root,
+    .MuiDrawer-paper .custom-menu-list .MuiListItemText-primary {
       color: ${secondaryColor} !important;
     }
     .MuiDrawer-paper > .MuiListItem-root:hover,
-    .MuiDrawer-paper > .MuiListItem-root.Mui-selected {
+    .MuiDrawer-paper > .MuiListItem-root.Mui-selected,
+    .MuiDrawer-paper .custom-menu-list .MuiListItem-root:hover,
+    .MuiDrawer-paper .custom-menu-list .MuiListItem-root.Mui-selected {
       background-color: ${secondaryColor} !important;
       color: ${primaryColor} !important;
     }
     .MuiDrawer-paper > .MuiListItem-root:hover .MuiListItemText-primary,
-    .MuiDrawer-paper > .MuiListItem-root.Mui-selected .MuiListItemText-primary {
+    .MuiDrawer-paper > .MuiListItem-root.Mui-selected .MuiListItemText-primary,
+    .MuiDrawer-paper .custom-menu-list .MuiListItem-root:hover .MuiListItemText-primary,
+    .MuiDrawer-paper .custom-menu-list .MuiListItem-root.Mui-selected .MuiListItemText-primary {
       color: ${primaryColor} !important;
     }
     
@@ -169,83 +179,138 @@ const injectThemeStyle = (options: ThemeOptions) => {
       border-color: ${secondaryColor} !important;
       caret-color: ${secondaryColor} !important;
     }
+
+    /* Custom Menu Styles */
+    .custom-menu-list {
+      width: 100%;
+      padding-top: 8px !important;
+      padding-bottom: 8px !important;
+    }
+    
+    .custom-menu-list .MuiListItem-root {
+      padding: 8px 16px;
+      cursor: pointer;
+      border-radius: 4px;
+      margin: 2px 8px;
+      transition: background-color 0.3s ease;
+    }
+    
+    .custom-menu-list .MuiListItem-root:hover {
+      background-color: ${secondaryColor} !important;
+    }
+    
+    .custom-menu-list .MuiListItem-root:hover .MuiListItemText-primary {
+      color: ${primaryColor} !important;
+    }
+    
+    .drawer-logo-container {
+      position: sticky !important;
+      bottom: 0 !important;
+      background-color: ${primaryColor} !important;
+      border-top: 1px solid ${secondaryColor}33 !important;
+    }
   `;
   document.head.appendChild(style);
 };
 
-// Simplified navigation function for home icon
+// Navigation functions
+const navigateTo = path => {
+  if (window.location.pathname !== path) {
+    window.location.href = path;
+  }
+};
+
 const navigateToHomePage = () => {
-  // Try different approaches to find the home icon/button
-  const homeSelectors = [
-    '.MuiDrawer-paper > div:first-child svg',
-    '.MuiDrawer-paper > ul > li:first-child',
-    '.MuiDrawer-paper button:first-of-type',
-    '.MuiDrawer-paper > *:first-child',
-    'div[style*="house.svg"]',
-    'img[src*="house"], img[src*="home"]',
-  ];
+  navigateTo('/dashboard');
+};
 
-  // First try the sidebar icons
-  const sidebarIcons = document.querySelectorAll('.MuiDrawer-paper svg, .MuiDrawer-paper img');
-  if (sidebarIcons.length > 0) {
-    let clickableElement = sidebarIcons[0] as HTMLElement;
-    while (
-      clickableElement &&
-      !clickableElement.classList.contains('MuiListItem-root') &&
-      !clickableElement.classList.contains('MuiListItemButton-root') &&
-      !clickableElement.onclick
-    ) {
-      clickableElement = clickableElement.parentElement as HTMLElement;
-      if (!clickableElement) break;
-    }
+// Menu data
+const defaultMenuItems = [
+  { text: 'Dashboard', path: '/dashboard' },
+  { text: 'Nodes', path: '/nodes' },
+  { text: 'Pods', path: '/pods' },
+  { text: 'Services', path: '/services' },
+];
 
-    if (clickableElement) {
-      clickableElement.click();
-      return true;
-    }
+const k8sMenuItems = [
+  { text: 'K8s Dashboard', path: '/k8s-dashboard' },
+  { text: 'Nodes', path: '/k8s-nodes' },
+  { text: 'Pods', path: '/k8s-pods' },
+  { text: 'Services', path: '/k8s-services' },
+];
+
+// Menu state management
+const createMenuManager = () => {
+  let activeMenuType = 'default'; // Tracks which menu is currently active
+
+  return {
+    // Switch to default menu
+    showDefaultMenu: drawerElement => {
+      if (activeMenuType === 'default') return; // Already showing default menu
+      activeMenuType = 'default';
+      createMenuList(defaultMenuItems, drawerElement);
+    },
+
+    // Switch to k8s menu
+    showK8sMenu: drawerElement => {
+      if (activeMenuType === 'k8s') return; // Already showing k8s menu
+      activeMenuType = 'k8s';
+      createMenuList(k8sMenuItems, drawerElement);
+    },
+
+    // Get current menu type
+    getActiveMenuType: () => activeMenuType,
+  };
+};
+
+// Create a single instance of the menu manager
+const menuManager = createMenuManager();
+
+// Helper to create and insert menu in drawer
+const createMenuList = (items, drawerElement) => {
+  // Remove existing custom menu if any
+  const existingMenu = drawerElement.querySelector('.custom-menu-list');
+  if (existingMenu) {
+    existingMenu.remove();
   }
 
-  // Try other selectors
-  for (const selector of homeSelectors) {
-    try {
-      const element = document.querySelector(selector);
-      if (element) {
-        let clickable = element as HTMLElement;
-        let attempts = 0;
-        while (clickable && attempts < 5) {
-          if (
-            clickable.onclick ||
-            clickable.tagName === 'BUTTON' ||
-            clickable.tagName === 'A' ||
-            clickable.classList.contains('MuiListItem-root') ||
-            clickable.classList.contains('MuiListItemButton-root')
-          ) {
-            break;
-          }
-          clickable = clickable.parentElement as HTMLElement;
-          attempts++;
-        }
+  // Create new menu
+  const menuList = document.createElement('ul');
+  menuList.className = 'MuiList-root custom-menu-list';
 
-        if (clickable) {
-          clickable.click();
-          return true;
-        }
-      }
-    } catch (error) {
-      console.error(`Error with selector ${selector}:`, error);
-    }
+  items.forEach(item => {
+    const listItem = document.createElement('li');
+    listItem.className = 'MuiListItem-root';
+    listItem.style.display = 'flex';
+    listItem.style.alignItems = 'center';
+
+    listItem.innerHTML = `<div class="MuiListItemText-root">
+      <span class="MuiListItemText-primary">${item.text}</span>
+    </div>`;
+
+    listItem.addEventListener('click', () => navigateTo(item.path));
+
+    menuList.appendChild(listItem);
+  });
+
+  // Insert at top of drawer, before any logo containers
+  const logoContainer = drawerElement.querySelector('.drawer-logo-container');
+  if (logoContainer) {
+    drawerElement.insertBefore(menuList, logoContainer);
+  } else {
+    drawerElement.appendChild(menuList);
   }
 
-  return false;
+  return menuList;
 };
 
 // Drawer and Logo Management
-const checkDrawerCollapsed = (drawer: Element) => {
+const checkDrawerCollapsed = drawer => {
   const isCollapsed = drawer.clientWidth < 100;
   drawer.classList[isCollapsed ? 'add' : 'remove']('collapsed');
 };
 
-const setupDrawerCollapseDetection = (drawer: Element) => {
+const setupDrawerCollapseDetection = drawer => {
   checkDrawerCollapsed(drawer);
 
   const resizeObserver = new ResizeObserver(() => checkDrawerCollapsed(drawer));
@@ -269,7 +334,7 @@ const injectDrawerIcons = () => {
     .drawer-logo-container {
       width: 100%;
       padding: 16px;
-      margin-top: 16px;
+      margin-top: auto;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -335,7 +400,10 @@ const injectDrawerIcons = () => {
     return false;
   }
 
-  // Create container
+  // First add default menu items to the drawer - ensure we start with default menu
+  menuManager.showDefaultMenu(drawer);
+
+  // Create logo container
   const logoContainer = document.createElement('div');
   logoContainer.className = 'drawer-logo-container';
   logoContainer.setAttribute('data-logo-container', 'true');
@@ -376,6 +444,11 @@ const injectDrawerIcons = () => {
   k8sLogoText.textContent = 'K8s UI';
   k8sLogoDiv.appendChild(k8sLogoText);
 
+  // Add click handler to switch to K8s menu
+  k8sLogoDiv.addEventListener('click', () => {
+    menuManager.showK8sMenu(drawer);
+  });
+
   k8sLogoDiv.title = 'Kubernetes UI';
   logoLayout.appendChild(k8sLogoDiv);
 
@@ -407,8 +480,11 @@ const injectDrawerIcons = () => {
   homeLogoText.textContent = 'Home';
   homeLogoDiv.appendChild(homeLogoText);
 
-  // Add the click event to navigate to home
-  homeLogoDiv.addEventListener('click', navigateToHomePage);
+  // Add the click event to navigate to home and restore default menu
+  homeLogoDiv.addEventListener('click', () => {
+    menuManager.showDefaultMenu(drawer);
+    navigateToHomePage();
+  });
   homeLogoDiv.title = 'Go to Home';
   logoLayout.appendChild(homeLogoDiv);
 
@@ -658,3 +734,47 @@ const ThemeCustomizer = () => {
 };
 
 registerPluginSettings('enbuild-headlamp-theme', ThemeCustomizer, false);
+
+// React Component for Menu Items
+function MenuItemComponent({ path, text }) {
+  const handleClick = () => {
+    window.location.href = path;
+  };
+
+  return (
+    <ListItem
+      button
+      onClick={handleClick}
+      sx={{ borderRadius: '4px', margin: '2px 8px', padding: '8px 16px' }}
+    >
+      <ListItemText primary={text} />
+    </ListItem>
+  );
+}
+
+// Add event listeners for navbar icons
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const drawer = document.querySelector('.MuiDrawer-paper');
+    if (drawer) {
+      // Handle K8s UI click - use delegation for dynamic elements
+      document.addEventListener('click', event => {
+        const target = event.target as HTMLElement;
+        const k8sLogoElement = target.closest('.kubernetes-logo');
+        if (k8sLogoElement) {
+          menuManager.showK8sMenu(drawer);
+        }
+      });
+
+      // Handle Home icon click
+      document.addEventListener('click', event => {
+        const target = event.target as HTMLElement;
+        const homeLogoElement = target.closest('.home-logo');
+        if (homeLogoElement) {
+          menuManager.showDefaultMenu(drawer);
+          navigateToHomePage();
+        }
+      });
+    }
+  }, 500);
+});
