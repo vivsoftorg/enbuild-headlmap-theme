@@ -180,9 +180,24 @@ const createMenuManager = () => {
       if (drawerElement) drawerElement.querySelector('.custom-menu-list')?.remove();
     },
     showK8sMenu: (drawerElement: HTMLElement | null) => {
-      if (activeMenuType === 'k8s') return;
+      if (activeMenuType === 'k8s') {
+        // If k8s menu is already active, remove it and set to default
+        this.showDefaultMenu(drawerElement);
+        return;
+      }
       activeMenuType = 'k8s';
       if (drawerElement) createMenuList(k8sMenuItems, drawerElement);
+    },
+    toggleK8sMenu: (drawerElement: HTMLElement | null) => {
+      if (activeMenuType === 'k8s') {
+        // If k8s menu is active, remove it and set to default
+        activeMenuType = 'default';
+        if (drawerElement) drawerElement.querySelector('.custom-menu-list')?.remove();
+      } else {
+        // If default menu is active, show k8s menu
+        activeMenuType = 'k8s';
+        if (drawerElement) createMenuList(k8sMenuItems, drawerElement);
+      }
     },
     getActiveMenuType: () => activeMenuType,
   };
@@ -268,6 +283,12 @@ const injectDrawerIcons = () => {
     .drawer-logo:hover .mui-icon {
       transform: scale(1.05); box-shadow: 0 0 5px rgba(255,255,255,0.3);
     }
+
+    /* Indicator for active menu */
+    .drawer-logo.active .mui-icon {
+      box-shadow: 0 0 8px rgba(255,255,255,0.5);
+      border: 2px solid ${defaults.secondary};
+    }
   `;
   document.head.appendChild(style);
 
@@ -315,8 +336,20 @@ const injectDrawerIcons = () => {
   k8sLogoText.textContent = 'New UI';
   k8sLogoDiv.appendChild(k8sLogoText);
 
-  k8sLogoDiv.addEventListener('click', () => menuManager.showK8sMenu(drawer));
-  k8sLogoDiv.title = 'Kubernetes UI';
+  // Modified to toggle the K8s menu
+  k8sLogoDiv.addEventListener('click', () => {
+    const drawerElement = document.querySelector('.MuiDrawer-paper') as HTMLElement;
+    menuManager.toggleK8sMenu(drawerElement);
+
+    // Toggle active class on the k8s logo
+    if (menuManager.getActiveMenuType() === 'k8s') {
+      k8sLogoDiv.classList.add('active');
+    } else {
+      k8sLogoDiv.classList.remove('active');
+    }
+  });
+
+  k8sLogoDiv.title = 'Toggle Kubernetes UI Menu';
   logoLayout.appendChild(k8sLogoDiv);
 
   // Home icon
@@ -346,6 +379,8 @@ const injectDrawerIcons = () => {
   homeLogoDiv.addEventListener('click', () => {
     const drawerElement = document.querySelector('.MuiDrawer-paper') as HTMLElement;
     menuManager.showDefaultMenu(drawerElement);
+    // Remove active class from k8s logo when home is clicked
+    document.querySelector('.kubernetes-logo')?.classList.remove('active');
     navigateToHomePage(drawerElement);
   });
   homeLogoDiv.title = 'Go to Home';
@@ -580,10 +615,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (drawer) {
       document.addEventListener('click', event => {
         const target = event.target as HTMLElement;
-        if (target.closest('.kubernetes-logo')) menuManager.showK8sMenu(drawer);
+        if (target.closest('.kubernetes-logo')) {
+          const drawerElement = document.querySelector('.MuiDrawer-paper') as HTMLElement;
+          menuManager.toggleK8sMenu(drawerElement);
+
+          // Toggle active class on the k8s logo
+          const k8sLogo = document.querySelector('.kubernetes-logo');
+          if (menuManager.getActiveMenuType() === 'k8s') {
+            k8sLogo?.classList.add('active');
+          } else {
+            k8sLogo?.classList.remove('active');
+          }
+        }
         if (target.closest('.home-logo')) {
           const drawerElement = document.querySelector('.MuiDrawer-paper') as HTMLElement;
           menuManager.showDefaultMenu(drawerElement);
+          // Remove active class from k8s logo when home is clicked
+          document.querySelector('.kubernetes-logo')?.classList.remove('active');
           navigateToHomePage(drawerElement);
         }
       });
