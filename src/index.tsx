@@ -148,6 +148,11 @@ const injectThemeStyle = (options: ThemeOptions) => {
       position: sticky !important; bottom: 0 !important; background-color: ${primaryColor} !important;
       border-top: 1px solid ${secondaryColor}33 !important;
     }
+    
+    /* Hide default navigation when custom menu is active */
+    .MuiDrawer-paper.custom-menu-active .default-nav-item {
+      display: none !important;
+    }
   `;
   document.head.appendChild(style);
 };
@@ -156,7 +161,12 @@ const injectThemeStyle = (options: ThemeOptions) => {
 const navigateTo = path =>
   window.location.pathname !== path ? (window.location.href = path) : null;
 const navigateToHomePage = (drawerElement: HTMLElement | null) => {
-  if (drawerElement) drawerElement.querySelector('.custom-menu-list')?.remove();
+  if (drawerElement) {
+    // Restore default navigation menu
+    drawerElement.classList.remove('custom-menu-active');
+    // Remove the custom menu if it exists
+    drawerElement.querySelector('.custom-menu-list')?.remove();
+  }
   navigateTo('/dashboard');
 };
 
@@ -177,7 +187,13 @@ const createMenuManager = () => {
     showDefaultMenu: (drawerElement: HTMLElement | null) => {
       if (activeMenuType === 'default') return;
       activeMenuType = 'default';
-      if (drawerElement) drawerElement.querySelector('.custom-menu-list')?.remove();
+
+      if (drawerElement) {
+        // Show default navigation items
+        drawerElement.classList.remove('custom-menu-active');
+        // Remove the custom menu if it exists
+        drawerElement.querySelector('.custom-menu-list')?.remove();
+      }
     },
     showK8sMenu: (drawerElement: HTMLElement | null) => {
       if (activeMenuType === 'k8s') {
@@ -186,17 +202,30 @@ const createMenuManager = () => {
         return;
       }
       activeMenuType = 'k8s';
-      if (drawerElement) createMenuList(k8sMenuItems, drawerElement);
+      if (drawerElement) {
+        // Mark drawer as having custom menu active to hide default items
+        drawerElement.classList.add('custom-menu-active');
+        createMenuList(k8sMenuItems, drawerElement);
+      }
     },
     toggleK8sMenu: (drawerElement: HTMLElement | null) => {
       if (activeMenuType === 'k8s') {
         // If k8s menu is active, remove it and set to default
         activeMenuType = 'default';
-        if (drawerElement) drawerElement.querySelector('.custom-menu-list')?.remove();
+        if (drawerElement) {
+          // Show default navigation items
+          drawerElement.classList.remove('custom-menu-active');
+          // Remove the custom menu
+          drawerElement.querySelector('.custom-menu-list')?.remove();
+        }
       } else {
         // If default menu is active, show k8s menu
         activeMenuType = 'k8s';
-        if (drawerElement) createMenuList(k8sMenuItems, drawerElement);
+        if (drawerElement) {
+          // Hide default navigation items
+          drawerElement.classList.add('custom-menu-active');
+          createMenuList(k8sMenuItems, drawerElement);
+        }
       }
     },
     getActiveMenuType: () => activeMenuType,
@@ -222,10 +251,15 @@ const createMenuList = (items: { text: string; path: string }[], drawerElement: 
     menuList.appendChild(listItem);
   });
 
-  const logoContainer = drawerElement.querySelector('.drawer-logo-container');
-  logoContainer
-    ? drawerElement.insertBefore(menuList, logoContainer)
-    : drawerElement.appendChild(menuList);
+  // Insert the menu at the beginning of the drawer
+  // Find the first child of the drawer (after which we'll insert our menu)
+  const firstChild = drawerElement.firstChild;
+  if (firstChild) {
+    drawerElement.insertBefore(menuList, firstChild);
+  } else {
+    drawerElement.appendChild(menuList);
+  }
+
   return menuList;
 };
 
@@ -240,6 +274,16 @@ const setupDrawerCollapseDetection = (drawer: HTMLElement) => {
   const resizeObserver = new ResizeObserver(() => checkDrawerCollapsed(drawer));
   resizeObserver.observe(drawer);
   window.addEventListener('resize', () => checkDrawerCollapsed(drawer));
+};
+
+// Mark default navigation items
+const markDefaultNavItems = (drawer: HTMLElement) => {
+  const defaultNavItems = drawer.querySelectorAll('.MuiListItem-root:not(.custom-menu-item)');
+  defaultNavItems.forEach(item => {
+    if (!item.classList.contains('custom-menu-item') && !item.classList.contains('drawer-logo')) {
+      item.classList.add('default-nav-item');
+    }
+  });
 };
 
 // Core function to add drawer icons
@@ -298,7 +342,10 @@ const injectDrawerIcons = () => {
     return false;
   }
 
-  menuManager.showDefaultMenu(drawer);
+  // Mark default navigation items for potential hiding
+  markDefaultNavItems(drawer as HTMLElement);
+
+  menuManager.showDefaultMenu(drawer as HTMLElement);
 
   const logoContainer = document.createElement('div');
   logoContainer.className = 'drawer-logo-container';
@@ -387,7 +434,7 @@ const injectDrawerIcons = () => {
   logoLayout.appendChild(homeLogoDiv);
 
   drawer.appendChild(logoContainer);
-  setupDrawerCollapseDetection(drawer);
+  setupDrawerCollapseDetection(drawer as HTMLElement);
   return true;
 };
 
