@@ -1,3 +1,4 @@
+// Enhanced menu management for EnBuild UI
 import {
   AppLogoProps,
   ConfigStore,
@@ -18,6 +19,7 @@ import {
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { LayoutDashboard, LayoutList, Store, Cpu, GitBranchPlus, Settings } from 'lucide-react';
+import ReactDOM from 'react-dom';
 
 // Config & Types
 const defaults = {
@@ -176,6 +178,12 @@ const injectThemeStyle = (options: ThemeOptions) => {
       display: none !important;
     }
     
+    /* Hide ALL default items in exclusive mode */
+    .MuiDrawer-paper.exclusive-menu-mode .default-nav-item,
+    .MuiDrawer-paper.exclusive-menu-mode > *:not(.custom-menu-list):not(.drawer-logo-container) {
+      display: none !important;
+    }
+    
     /* Drawer logos */
     .drawer-logo-container {
       width: 100%; padding: 16px; margin-top: auto; display: flex; flex-direction: column;
@@ -234,13 +242,21 @@ const navigateTo = path =>
 
 const menuManager = (() => {
   let activeMenuType = 'default';
+  let exclusiveMode = false;
 
   return {
     showDefaultMenu: drawer => {
-      if (!drawer || activeMenuType === 'default') return;
+      if (!drawer) return;
+
       activeMenuType = 'default';
+      exclusiveMode = false;
       drawer.classList.remove('custom-menu-active');
+      drawer.classList.remove('exclusive-menu-mode');
       drawer.querySelector('.custom-menu-list')?.remove();
+
+      // Update logo active states
+      document.querySelector('.kubernetes-logo')?.classList.remove('active');
+      document.querySelector('.new-ui-logo')?.classList.remove('active');
     },
 
     toggleK8sMenu: drawer => {
@@ -248,6 +264,10 @@ const menuManager = (() => {
 
       const isK8sActive = activeMenuType === 'k8s';
       activeMenuType = isK8sActive ? 'default' : 'k8s';
+
+      // Always ensure exclusive mode is off when toggling K8s menu
+      exclusiveMode = false;
+      drawer.classList.remove('exclusive-menu-mode');
 
       if (isK8sActive) {
         drawer.classList.remove('custom-menu-active');
@@ -257,12 +277,34 @@ const menuManager = (() => {
         createMenuList(k8sMenuItems, drawer);
       }
 
-      // Update logo active state
+      // Update logo active states
       const k8sLogo = document.querySelector('.kubernetes-logo');
       k8sLogo?.classList[isK8sActive ? 'remove' : 'add']('active');
+      document.querySelector('.new-ui-logo')?.classList.remove('active');
+    },
+
+    activateExclusiveNewUI: drawer => {
+      if (!drawer) return;
+
+      activeMenuType = 'k8s';
+      exclusiveMode = true;
+
+      // Add both classes to ensure total control of visibility
+      drawer.classList.add('custom-menu-active');
+      drawer.classList.add('exclusive-menu-mode');
+
+      // Recreate menu list to ensure it's present
+      drawer.querySelector('.custom-menu-list')?.remove();
+      createMenuList(k8sMenuItems, drawer);
+
+      // Update logo active states
+      document.querySelector('.kubernetes-logo')?.classList.remove('active');
+      document.querySelector('.new-ui-logo')?.classList.add('active');
     },
 
     getActiveMenuType: () => activeMenuType,
+
+    isExclusiveMode: () => exclusiveMode,
   };
 })();
 
@@ -345,7 +387,14 @@ const injectDrawerIcons = () => {
 
   // Mark default navigation items
   markDefaultNavItems(drawer);
-  menuManager.showDefaultMenu(drawer);
+
+  // Maintain current state if menu is already active
+  if (
+    !drawer.classList.contains('custom-menu-active') &&
+    !drawer.classList.contains('exclusive-menu-mode')
+  ) {
+    menuManager.showDefaultMenu(drawer);
+  }
 
   // Create logo container
   const logoContainer = document.createElement('div');
@@ -391,11 +440,21 @@ const injectDrawerIcons = () => {
     return logoDiv;
   };
 
-  // K8s logo
-  const k8sLogoDiv = createLogoElement(
-    'kubernetes-logo',
+  // New UI logo (will show ONLY user-defined menus)
+  const newUILogoDiv = createLogoElement(
+    'new-ui-logo',
     'M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z',
     'New UI',
+    'Show Only Custom UI',
+    () => menuManager.activateExclusiveNewUI(drawer)
+  );
+  logoLayout.appendChild(newUILogoDiv);
+
+  // K8s logo (toggled functionality)
+  const k8sLogoDiv = createLogoElement(
+    'kubernetes-logo',
+    'M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z',
+    'Toggle Menu',
     'Toggle Kubernetes UI Menu',
     () => menuManager.toggleK8sMenu(drawer)
   );
@@ -404,12 +463,11 @@ const injectDrawerIcons = () => {
   // Home logo
   const homeLogoDiv = createLogoElement(
     'home-logo',
-    'M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z',
+    'M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z',
     'Home',
-    'Go to Home',
+    'Return to Default UI',
     () => {
       menuManager.showDefaultMenu(drawer);
-      document.querySelector('.kubernetes-logo')?.classList.remove('active');
       navigateTo('/dashboard');
     }
   );
@@ -417,6 +475,14 @@ const injectDrawerIcons = () => {
 
   drawer.appendChild(logoContainer);
   setupDrawerCollapseDetection(drawer);
+
+  // Set active logo states based on current mode
+  if (menuManager.isExclusiveMode()) {
+    document.querySelector('.new-ui-logo')?.classList.add('active');
+  } else if (menuManager.getActiveMenuType() === 'k8s') {
+    document.querySelector('.kubernetes-logo')?.classList.add('active');
+  }
+
   return true;
 };
 
@@ -496,6 +562,8 @@ export function SimpleLogo(props: AppLogoProps) {
         top: '10px',
         left: '250px',
         zIndex: 10,
+        padding: '2px',
+        borderRadius: '4px',
       }}
       onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
         console.error('Error loading logo: ', e.currentTarget.src);
@@ -606,19 +674,24 @@ const ThemeCustomizer = () => {
 
 registerPluginSettings('enbuild-headlamp-theme', ThemeCustomizer, false);
 
-// Add click event listener for navbar icons
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    const drawer = document.querySelector('.MuiDrawer-paper');
-    if (drawer) {
-      document.addEventListener('click', event => {
-        const target = event.target as HTMLElement;
-        if (target.closest('.kubernetes-logo')) {
-          menuManager.toggleK8sMenu(drawer as HTMLElement);
-        }
-      });
-    }
-  }, 500);
+// Handle footer icon clicks for direct menu toggling
+document.addEventListener('click', event => {
+  const target = event.target as HTMLElement;
+  const drawer = document.querySelector('.MuiDrawer-paper');
+
+  if (!drawer) return;
+
+  // Handle direct footer icon clicks
+  const newUIElement = target.closest('[title="New UI"]') || target.closest('.new-ui');
+  if (newUIElement) {
+    menuManager.activateExclusiveNewUI(drawer);
+  }
+
+  const homeLogo = target.closest('.home-logo');
+  if (homeLogo) {
+    menuManager.showDefaultMenu(drawer);
+    navigateTo('/dashboard');
+  }
 });
 
 // Apply window load event handler
