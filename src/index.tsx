@@ -17,6 +17,15 @@ import {
   Typography,
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
+import {
+  LayoutDashboard,
+  LayoutList,
+  Store,
+  Cpu,
+  GitBranchPlus,
+  Settings,
+  Rocket,
+} from 'lucide-react';
 
 // Default configuration values
 const defaults = {
@@ -172,12 +181,12 @@ const navigateToHomePage = (drawerElement: HTMLElement | null) => {
 
 // Menu data
 const k8sMenuItems = [
-  { text: 'Overview', path: '/overview' },
-  { text: 'Pipelines', path: '/pipelines' },
-  { text: 'Marketplace', path: '/marketplace' },
-  { text: 'Components', path: '/components' },
-  { text: 'Deployment Flows', path: '/deployment-flows' },
-  { text: 'Configuration', path: '/configuration' },
+  { text: 'Overview', path: '/overview', icon: <LayoutDashboard size={20} /> },
+  { text: 'Pipelines', path: '/pipelines', icon: <LayoutList size={20} /> },
+  { text: 'Marketplace', path: '/marketplace', icon: <Store size={20} /> },
+  { text: 'Components', path: '/components', icon: <Cpu size={20} /> },
+  { text: 'Deployment Flows', path: '/deployment-flows', icon: <GitBranchPlus size={20} /> },
+  { text: 'Configuration', path: '/configuration', icon: <Settings size={20} /> },
 ];
 
 // Menu state management
@@ -234,7 +243,10 @@ const createMenuManager = () => {
 const menuManager = createMenuManager();
 
 // Helper to create and insert menu in drawer
-const createMenuList = (items: { text: string; path: string }[], drawerElement: HTMLElement) => {
+const createMenuList = (
+  items: { text: string; path: string; icon?: React.ReactNode }[],
+  drawerElement: HTMLElement
+) => {
   const existingMenu = drawerElement.querySelector('.custom-menu-list');
   if (existingMenu) existingMenu.remove();
 
@@ -246,7 +258,29 @@ const createMenuList = (items: { text: string; path: string }[], drawerElement: 
     listItem.className = 'MuiListItem-root';
     listItem.style.display = 'flex';
     listItem.style.alignItems = 'center';
-    listItem.innerHTML = `<div class="MuiListItemText-root"><span class="MuiListItemText-primary">${item.text}</span></div>`;
+
+    // Add icon if available
+    if (item.icon) {
+      const iconElement = document.createElement('span');
+      iconElement.style.marginRight = '12px';
+      iconElement.className = 'menu-item-icon';
+
+      const tempDiv = document.createElement('div');
+      // Use ReactDOM to render the React icon element
+      ReactDOM.render(item.icon, tempDiv);
+      // Append the rendered icon to our container
+      iconElement.appendChild(tempDiv.firstChild!);
+      listItem.appendChild(iconElement);
+    }
+
+    const textSpan = document.createElement('span');
+    textSpan.className = 'MuiListItemText-primary';
+    textSpan.textContent = item.text;
+    const textDiv = document.createElement('div');
+    textDiv.className = 'MuiListItemText-root';
+    textDiv.appendChild(textSpan);
+    listItem.appendChild(textDiv);
+
     listItem.addEventListener('click', () => navigateTo(item.path));
     menuList.appendChild(listItem);
   });
@@ -332,6 +366,18 @@ const injectDrawerIcons = () => {
     .drawer-logo.active .mui-icon {
       box-shadow: 0 0 8px rgba(255,255,255,0.5);
       border: 2px solid ${defaults.secondary};
+    }
+
+    /* Menu item icons */
+    .menu-item-icon {
+      display: flex;
+      align-items: center;
+      margin-right: 12px;
+      color: ${defaults.secondary};
+    }
+    .MuiListItem-root:hover .menu-item-icon svg,
+    .MuiListItem-root.Mui-selected .menu-item-icon svg {
+      color: ${defaults.primary} !important;
     }
   `;
   document.head.appendChild(style);
@@ -437,6 +483,30 @@ const injectDrawerIcons = () => {
   setupDrawerCollapseDetection(drawer as HTMLElement);
   return true;
 };
+
+// Add event listeners for navbar icons
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const drawer = document.querySelector('.MuiDrawer-paper');
+    if (drawer) {
+      document.addEventListener('click', event => {
+        const target = event.target as HTMLElement;
+        if (target.closest('.kubernetes-logo')) {
+          const drawerElement = document.querySelector('.MuiDrawer-paper') as HTMLElement;
+          menuManager.toggleK8sMenu(drawerElement);
+
+          // Toggle active class on the k8s logo
+          const k8sLogo = document.querySelector('.kubernetes-logo');
+          if (menuManager.getActiveMenuType() === 'k8s') {
+            k8sLogo?.classList.add('active');
+          } else {
+            k8sLogo?.classList.remove('active');
+          }
+        }
+      });
+    }
+  }, 500);
+});
 
 // Initialize drawer icons with retries
 const initializeDrawerIcons = () => {
@@ -643,13 +713,14 @@ const ThemeCustomizer = () => {
 registerPluginSettings('enbuild-headlamp-theme', ThemeCustomizer, false);
 
 // React Component for Menu Items
-function MenuItemComponent({ path, text }) {
+function MenuItemComponent({ path, text, icon }) {
   return (
     <ListItem
       button
       onClick={() => (window.location.href = path)}
       sx={{ borderRadius: '4px', margin: '2px 8px', padding: '8px 16px' }}
     >
+      {icon && <span className="menu-item-icon">{icon}</span>}
       <ListItemText primary={text} />
     </ListItem>
   );
@@ -673,13 +744,6 @@ document.addEventListener('DOMContentLoaded', () => {
           } else {
             k8sLogo?.classList.remove('active');
           }
-        }
-        if (target.closest('.home-logo')) {
-          const drawerElement = document.querySelector('.MuiDrawer-paper') as HTMLElement;
-          menuManager.showDefaultMenu(drawerElement);
-          // Remove active class from k8s logo when home is clicked
-          document.querySelector('.kubernetes-logo')?.classList.remove('active');
-          navigateToHomePage(drawerElement);
         }
       });
     }
