@@ -10,15 +10,13 @@ import {
   Button,
   FormControl,
   InputLabel,
-  ListItem,
-  ListItemText,
   MenuItem,
   Select,
   TextField,
   Typography,
 } from '@mui/material';
+import { Cpu, GitBranchPlus, LayoutDashboard, LayoutList, Settings, Store } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, LayoutList, Store, Cpu, GitBranchPlus, Settings } from 'lucide-react';
 import ReactDOM from 'react-dom';
 
 // Config & Types
@@ -56,9 +54,8 @@ interface ThemeOptions {
 
 const store = new ConfigStore<ThemeOptions>('enbuild-customiser-theme');
 
-// Menu data
+// Menu data - Updated to match the order shown in the screenshot
 const k8sMenuItems = [
-  { text: 'Overview', path: '/overview', icon: <LayoutDashboard size={20} /> },
   { text: 'Pipelines', path: '/pipelines', icon: <LayoutList size={20} /> },
   { text: 'Marketplace', path: '/marketplace', icon: <Store size={20} /> },
   { text: 'Components', path: '/components', icon: <Cpu size={20} /> },
@@ -92,7 +89,7 @@ const loadFont = (fontName = defaults.font) => {
   document.head.appendChild(style);
 };
 
-const injectThemeStyle = (options: ThemeOptions) => {
+const injectThemeStyle = options => {
   const primaryColor = options.primaryColor || defaults.primary;
   const secondaryColor = options.secondaryColor || defaults.secondary;
   const styleId = 'custom-theme-style';
@@ -142,9 +139,8 @@ const injectThemeStyle = (options: ThemeOptions) => {
     
     /* Header */
     .MuiAppBar-root { background-color: ${primaryColor} !important; color: ${secondaryColor} !important; }
-    .MuiAppBar-root *, .MuiAppBar-root input, .MuiAppBar-root input::placeholder,
-    .MuiAppBar-root .MuiSvgIcon-root, .MuiAppBar-root .MuiIconButton-root,
-    .MuiAppBar-root button, .MuiAppBar-root a { color: ${secondaryColor} !important; }
+    .MuiAppBar-root *, .MuiAppBar-root input, .MuiAppBar-root input::placeholder, .MuiAppBar-root .MuiSvgIcon-root, 
+    .MuiAppBar-root .MuiIconButton-root, .MuiAppBar-root button, .MuiAppBar-root a { color: ${secondaryColor} !important; }
     .MuiAppBar-root input::placeholder { color: ${secondaryColor}99 !important; }
     
     /* Search field */
@@ -158,9 +154,7 @@ const injectThemeStyle = (options: ThemeOptions) => {
     }
 
     /* Custom Menu Styles */
-    .custom-menu-list {
-      width: 100%; padding: 8px 0 !important;
-    }
+    .custom-menu-list { width: 100%; padding: 8px 0 !important; }
     .custom-menu-list .MuiListItem-root {
       padding: 8px 16px; cursor: pointer; border-radius: 4px; margin: 2px 8px;
       transition: background-color 0.3s ease;
@@ -174,15 +168,11 @@ const injectThemeStyle = (options: ThemeOptions) => {
     }
     
     /* Hide default navigation when custom menu is active */
-    .MuiDrawer-paper.custom-menu-active .default-nav-item {
-      display: none !important;
-    }
+    .MuiDrawer-paper.custom-menu-active .default-nav-item { display: none !important; }
     
     /* Hide ALL default items in exclusive mode */
     .MuiDrawer-paper.exclusive-menu-mode .default-nav-item,
-    .MuiDrawer-paper.exclusive-menu-mode > *:not(.custom-menu-list):not(.drawer-logo-container) {
-      display: none !important;
-    }
+    .MuiDrawer-paper.exclusive-menu-mode > *:not(.custom-menu-list):not(.drawer-logo-container) { display: none !important; }
     
     /* Drawer logos */
     .drawer-logo-container {
@@ -203,20 +193,12 @@ const injectThemeStyle = (options: ThemeOptions) => {
       width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
       background-color: white; border-radius: 4px; padding: 4px;
     }
-    .drawer-logo .mui-icon svg {
-      width: 32px; height: 32px; color: ${primaryColor} !important;
-    }
-    .drawer-logo .logo-text {
-      margin-top: 8px; color: ${secondaryColor}; font-size: 12px; text-align: center;
-    }
+    .drawer-logo .mui-icon svg { width: 32px; height: 32px; color: ${primaryColor} !important; }
+    .drawer-logo .logo-text { margin-top: 8px; color: ${secondaryColor}; font-size: 12px; text-align: center; }
     .MuiDrawer-paper.collapsed .logo-text { display: none; }
     
-    .drawer-logo:hover {
-      opacity: 0.8; transition: all 0.2s ease;
-    }
-    .drawer-logo:hover .mui-icon {
-      transform: scale(1.05); box-shadow: 0 0 5px rgba(255,255,255,0.3);
-    }
+    .drawer-logo:hover { opacity: 0.8; transition: all 0.2s ease; }
+    .drawer-logo:hover .mui-icon { transform: scale(1.05); box-shadow: 0 0 5px rgba(255,255,255,0.3); }
 
     /* Indicator for active menu */
     .drawer-logo.active .mui-icon {
@@ -225,47 +207,80 @@ const injectThemeStyle = (options: ThemeOptions) => {
     }
 
     /* Menu item icons */
-    .menu-item-icon {
-      display: flex; align-items: center; margin-right: 12px; color: ${secondaryColor};
-    }
+    .menu-item-icon { display: flex; align-items: center; margin-right: 12px; color: ${secondaryColor}; }
     .MuiListItem-root:hover .menu-item-icon svg,
-    .MuiListItem-root.Mui-selected .menu-item-icon svg {
-      color: ${primaryColor} !important;
-    }
+    .MuiListItem-root.Mui-selected .menu-item-icon svg { color: ${primaryColor} !important; }
   `;
   document.head.appendChild(style);
 };
 
-// Navigation and Menu Management
-const navigateTo = path =>
-  window.location.pathname !== path ? (window.location.href = path) : null;
-
+// Consolidated Menu Management
 const menuManager = (() => {
   let activeMenuType = 'default';
   let exclusiveMode = false;
 
+  const navigateTo = path =>
+    window.location.pathname !== path ? (window.location.href = path) : null;
+
+  // Create menu list in drawer
+  const createMenuList = (items, drawer) => {
+    drawer.querySelector('.custom-menu-list')?.remove();
+
+    const menuList = document.createElement('ul');
+    menuList.className = 'MuiList-root custom-menu-list';
+
+    items.forEach(item => {
+      const listItem = document.createElement('li');
+      listItem.className = 'MuiListItem-root';
+      listItem.style.display = 'flex';
+      listItem.style.alignItems = 'center';
+
+      // Add icon if available
+      if (item.icon) {
+        const iconElement = document.createElement('span');
+        iconElement.className = 'menu-item-icon';
+        iconElement.style.marginRight = '12px';
+
+        const tempDiv = document.createElement('div');
+        ReactDOM.render(item.icon, tempDiv);
+        iconElement.appendChild(tempDiv.firstChild);
+        listItem.appendChild(iconElement);
+      }
+
+      const textSpan = document.createElement('span');
+      textSpan.className = 'MuiListItemText-primary';
+      textSpan.textContent = item.text;
+
+      const textDiv = document.createElement('div');
+      textDiv.className = 'MuiListItemText-root';
+      textDiv.appendChild(textSpan);
+      listItem.appendChild(textDiv);
+
+      listItem.addEventListener('click', () => navigateTo(item.path));
+      menuList.appendChild(listItem);
+    });
+
+    // Insert at beginning of drawer
+    drawer.insertBefore(menuList, drawer.firstChild || null);
+    return menuList;
+  };
+
   return {
     showDefaultMenu: drawer => {
       if (!drawer) return;
-
       activeMenuType = 'default';
       exclusiveMode = false;
-      drawer.classList.remove('custom-menu-active');
-      drawer.classList.remove('exclusive-menu-mode');
+      drawer.classList.remove('custom-menu-active', 'exclusive-menu-mode');
       drawer.querySelector('.custom-menu-list')?.remove();
-
-      // Update logo active states
-      document.querySelector('.kubernetes-logo')?.classList.remove('active');
-      document.querySelector('.new-ui-logo')?.classList.remove('active');
+      document
+        .querySelectorAll('.kubernetes-logo, .new-ui-logo')
+        .forEach(el => el.classList.remove('active'));
     },
 
     toggleK8sMenu: drawer => {
       if (!drawer) return;
-
       const isK8sActive = activeMenuType === 'k8s';
       activeMenuType = isK8sActive ? 'default' : 'k8s';
-
-      // Always ensure exclusive mode is off when toggling K8s menu
       exclusiveMode = false;
       drawer.classList.remove('exclusive-menu-mode');
 
@@ -279,132 +294,51 @@ const menuManager = (() => {
 
       // Update logo active states
       const k8sLogo = document.querySelector('.kubernetes-logo');
-      k8sLogo?.classList[isK8sActive ? 'remove' : 'add']('active');
+      if (k8sLogo) k8sLogo.classList[isK8sActive ? 'remove' : 'add']('active');
       document.querySelector('.new-ui-logo')?.classList.remove('active');
     },
 
     activateExclusiveNewUI: drawer => {
       if (!drawer) return;
-
       activeMenuType = 'k8s';
       exclusiveMode = true;
-
-      // Add both classes to ensure total control of visibility
-      drawer.classList.add('custom-menu-active');
-      drawer.classList.add('exclusive-menu-mode');
-
-      // Recreate menu list to ensure it's present
-      drawer.querySelector('.custom-menu-list')?.remove();
+      drawer.classList.add('custom-menu-active', 'exclusive-menu-mode');
       createMenuList(k8sMenuItems, drawer);
-
-      // Update logo active states
       document.querySelector('.kubernetes-logo')?.classList.remove('active');
       document.querySelector('.new-ui-logo')?.classList.add('active');
     },
 
     getActiveMenuType: () => activeMenuType,
-
     isExclusiveMode: () => exclusiveMode,
+    createMenuList, // Expose for drawer initialization
   };
 })();
 
-// Create menu list in drawer
-const createMenuList = (items, drawer) => {
-  drawer.querySelector('.custom-menu-list')?.remove();
-
-  const menuList = document.createElement('ul');
-  menuList.className = 'MuiList-root custom-menu-list';
-
-  items.forEach(item => {
-    const listItem = document.createElement('li');
-    listItem.className = 'MuiListItem-root';
-    listItem.style.display = 'flex';
-    listItem.style.alignItems = 'center';
-
-    // Add icon if available
-    if (item.icon) {
-      const iconElement = document.createElement('span');
-      iconElement.style.marginRight = '12px';
-      iconElement.className = 'menu-item-icon';
-
-      const tempDiv = document.createElement('div');
-      ReactDOM.render(item.icon, tempDiv);
-      iconElement.appendChild(tempDiv.firstChild);
-      listItem.appendChild(iconElement);
-    }
-
-    const textSpan = document.createElement('span');
-    textSpan.className = 'MuiListItemText-primary';
-    textSpan.textContent = item.text;
-
-    const textDiv = document.createElement('div');
-    textDiv.className = 'MuiListItemText-root';
-    textDiv.appendChild(textSpan);
-    listItem.appendChild(textDiv);
-
-    listItem.addEventListener('click', () => navigateTo(item.path));
-    menuList.appendChild(listItem);
-  });
-
-  // Insert at beginning of drawer
-  const firstChild = drawer.firstChild;
-  if (firstChild) {
-    drawer.insertBefore(menuList, firstChild);
-  } else {
-    drawer.appendChild(menuList);
-  }
-
-  return menuList;
-};
-
 // Drawer Management
-const setupDrawerCollapseDetection = drawer => {
-  const checkCollapsed = () => {
-    const isCollapsed = drawer.clientWidth < 100;
-    drawer.classList[isCollapsed ? 'add' : 'remove']('collapsed');
+const drawerManager = (() => {
+  const setupDrawer = drawer => {
+    // Mark default navigation items
+    drawer.querySelectorAll('.MuiListItem-root:not(.custom-menu-item)').forEach(item => {
+      if (!item.classList.contains('custom-menu-item') && !item.classList.contains('drawer-logo')) {
+        item.classList.add('default-nav-item');
+      }
+    });
+
+    // Setup resize detection
+    const checkCollapsed = () =>
+      drawer.classList[drawer.clientWidth < 100 ? 'add' : 'remove']('collapsed');
+    checkCollapsed();
+    new ResizeObserver(checkCollapsed).observe(drawer);
+
+    // Maintain current state if menu is already active
+    if (
+      !drawer.classList.contains('custom-menu-active') &&
+      !drawer.classList.contains('exclusive-menu-mode')
+    ) {
+      menuManager.showDefaultMenu(drawer);
+    }
   };
 
-  checkCollapsed();
-  new ResizeObserver(checkCollapsed).observe(drawer);
-  window.addEventListener('resize', checkCollapsed);
-};
-
-const markDefaultNavItems = drawer => {
-  drawer.querySelectorAll('.MuiListItem-root:not(.custom-menu-item)').forEach(item => {
-    if (!item.classList.contains('custom-menu-item') && !item.classList.contains('drawer-logo')) {
-      item.classList.add('default-nav-item');
-    }
-  });
-};
-
-// Create drawer logos
-const injectDrawerIcons = () => {
-  // Remove any existing logos
-  document.querySelectorAll('.drawer-logo-container').forEach(c => c.remove());
-
-  const drawer = document.querySelector('.MuiDrawer-paper');
-  if (!drawer) return false;
-
-  // Mark default navigation items
-  markDefaultNavItems(drawer);
-
-  // Maintain current state if menu is already active
-  if (
-    !drawer.classList.contains('custom-menu-active') &&
-    !drawer.classList.contains('exclusive-menu-mode')
-  ) {
-    menuManager.showDefaultMenu(drawer);
-  }
-
-  // Create logo container
-  const logoContainer = document.createElement('div');
-  logoContainer.className = 'drawer-logo-container';
-
-  const logoLayout = document.createElement('div');
-  logoLayout.className = 'logo-layout';
-  logoContainer.appendChild(logoLayout);
-
-  // Common function to create logo elements
   const createLogoElement = (className, iconPath, text, title, onClick) => {
     const logoDiv = document.createElement('div');
     logoDiv.className = `drawer-logo ${className}`;
@@ -440,104 +374,129 @@ const injectDrawerIcons = () => {
     return logoDiv;
   };
 
-  // New UI logo (will show ONLY user-defined menus)
-  const newUILogoDiv = createLogoElement(
-    'new-ui-logo',
-    'M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z',
-    'New UI',
-    'Show Only Custom UI',
-    () => menuManager.activateExclusiveNewUI(drawer)
-  );
-  logoLayout.appendChild(newUILogoDiv);
+  const injectDrawerIcons = () => {
+    // Remove any existing logos
+    document.querySelectorAll('.drawer-logo-container').forEach(c => c.remove());
 
-  // K8s logo (toggled functionality)
-  const k8sLogoDiv = createLogoElement(
-    'kubernetes-logo',
-    'M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z',
-    'Toggle Menu',
-    'Toggle Kubernetes UI Menu',
-    () => menuManager.toggleK8sMenu(drawer)
-  );
-  logoLayout.appendChild(k8sLogoDiv);
+    const drawer = document.querySelector('.MuiDrawer-paper');
+    if (!drawer) return false;
 
-  // Home logo
-  const homeLogoDiv = createLogoElement(
-    'home-logo',
-    'M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z',
-    'Home',
-    'Return to Default UI',
-    () => {
-      menuManager.showDefaultMenu(drawer);
-      navigateTo('/dashboard');
+    setupDrawer(drawer);
+
+    // Create logo container
+    const logoContainer = document.createElement('div');
+    logoContainer.className = 'drawer-logo-container';
+
+    const logoLayout = document.createElement('div');
+    logoLayout.className = 'logo-layout';
+    logoContainer.appendChild(logoLayout);
+
+    // New UI logo
+    logoLayout.appendChild(
+      createLogoElement(
+        'new-ui-logo',
+        'M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z',
+        'New UI',
+        'Show Only Custom UI',
+        () => menuManager.activateExclusiveNewUI(drawer)
+      )
+    );
+
+    // Home logo
+    logoLayout.appendChild(
+      createLogoElement(
+        'home-logo',
+        'M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z',
+        'Home',
+        'Return to Default UI',
+        () => {
+          menuManager.showDefaultMenu(drawer);
+          navigateTo('/dashboard');
+        }
+      )
+    );
+
+    drawer.appendChild(logoContainer);
+
+    // Set active logo states based on current mode
+    if (menuManager.isExclusiveMode()) {
+      document.querySelector('.new-ui-logo')?.classList.add('active');
+    } else if (menuManager.getActiveMenuType() === 'k8s') {
+      document.querySelector('.kubernetes-logo')?.classList.add('active');
     }
-  );
-  logoLayout.appendChild(homeLogoDiv);
 
-  drawer.appendChild(logoContainer);
-  setupDrawerCollapseDetection(drawer);
+    return true;
+  };
 
-  // Set active logo states based on current mode
-  if (menuManager.isExclusiveMode()) {
-    document.querySelector('.new-ui-logo')?.classList.add('active');
-  } else if (menuManager.getActiveMenuType() === 'k8s') {
-    document.querySelector('.kubernetes-logo')?.classList.add('active');
-  }
+  return {
+    init: () => {
+      // Try to initialize immediately
+      if (injectDrawerIcons()) return;
 
-  return true;
-};
+      // Use MutationObserver for dynamic drawer detection
+      const observer = new MutationObserver((_, obs) => {
+        if (document.querySelector('.MuiDrawer-paper') && injectDrawerIcons()) {
+          obs.disconnect();
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
 
-// Initialize drawer with retries
-const initializeDrawerIcons = () => {
-  if (injectDrawerIcons()) return;
+      // Periodic retry as fallback
+      let attempts = 0;
+      const retryInterval = setInterval(() => {
+        if (
+          document.querySelector('.drawer-logo-container') ||
+          attempts >= 15 ||
+          injectDrawerIcons()
+        ) {
+          clearInterval(retryInterval);
+        }
+        attempts++;
+      }, 1000);
 
-  // Use MutationObserver to watch for drawer element
-  const observer = new MutationObserver((mutations, obs) => {
-    if (document.querySelector('.MuiDrawer-paper') && injectDrawerIcons()) {
-      obs.disconnect();
-    }
-  });
-  observer.observe(document.body, { childList: true, subtree: true });
+      // Initialize on DOM ready if not already done
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          if (!document.querySelector('.drawer-logo-container')) injectDrawerIcons();
+        });
+      }
 
-  // Periodic retry as fallback
-  let attempts = 0;
-  const maxAttempts = 15;
-  const retryInterval = setInterval(() => {
-    if (
-      document.querySelector('.drawer-logo-container') ||
-      attempts >= maxAttempts ||
-      injectDrawerIcons()
-    ) {
-      clearInterval(retryInterval);
-    }
-    attempts++;
-  }, 1000);
+      // Watch for route changes
+      const routeObserver = new MutationObserver(() => {
+        if (
+          !document.querySelector('.drawer-logo-container') &&
+          document.querySelector('.MuiDrawer-paper')
+        ) {
+          injectDrawerIcons();
+        }
+      });
+      routeObserver.observe(document.body, { childList: true, subtree: true });
 
-  // Initialize on DOM ready if not already done
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      if (!document.querySelector('.drawer-logo-container')) injectDrawerIcons();
-    });
-  }
-};
+      // Handle clicks for direct menu toggling
+      document.addEventListener('click', event => {
+        const target = event.target as HTMLElement;
+        const drawer = document.querySelector('.MuiDrawer-paper');
+        if (!drawer) return;
 
-// Initialize and set up event listeners
-initializeDrawerIcons();
+        if (target.closest('[title="New UI"]') || target.closest('.new-ui')) {
+          menuManager.activateExclusiveNewUI(drawer);
+        } else if (target.closest('.home-logo')) {
+          menuManager.showDefaultMenu(drawer);
+          navigateTo('/dashboard');
+        }
+      });
 
-// Watch for route changes
-const routeObserver = new MutationObserver(() => {
-  if (
-    !document.querySelector('.drawer-logo-container') &&
-    document.querySelector('.MuiDrawer-paper')
-  ) {
-    injectDrawerIcons();
-  }
-});
-routeObserver.observe(document.body, { childList: true, subtree: true });
-
-// Apply initial theme
-const initialConfig = store.get() || {};
-injectThemeStyle(initialConfig);
-if (initialConfig.font) loadFont(initialConfig.font);
+      // Apply window load event handler
+      window.addEventListener('load', () => {
+        if (!document.querySelector('.drawer-logo-container')) injectDrawerIcons();
+      });
+      window.addEventListener('popstate', () => {
+        if (!document.querySelector('.drawer-logo-container')) injectDrawerIcons();
+      });
+    },
+    inject: injectDrawerIcons,
+  };
+})();
 
 // Logo component for header
 export function SimpleLogo(props: AppLogoProps) {
@@ -573,8 +532,6 @@ export function SimpleLogo(props: AppLogoProps) {
   );
 }
 
-if (initialConfig.logoURL) registerAppLogo(SimpleLogo);
-
 // Settings Component
 const ThemeCustomizer = () => {
   const config = store.get() || {};
@@ -584,7 +541,7 @@ const ThemeCustomizer = () => {
   const [logoURL, setLogoURL] = useState(config.logoURL || defaults.logoURL);
 
   useEffect(() => {
-    if (!document.querySelector('.drawer-logo-container')) injectDrawerIcons();
+    if (!document.querySelector('.drawer-logo-container')) drawerManager.inject();
   }, []);
 
   const applySettings = settings => {
@@ -592,20 +549,7 @@ const ThemeCustomizer = () => {
     injectThemeStyle(settings);
     if (settings.font) loadFont(settings.font);
     if (settings.logoURL) registerAppLogo(SimpleLogo);
-    injectDrawerIcons();
-  };
-
-  const savePreferences = () => {
-    applySettings({ primaryColor, secondaryColor, font, logoURL });
-  };
-
-  const resetPreferences = () => {
-    const resetConfig = { ...defaults };
-    setPrimaryColor(defaults.primary);
-    setSecondaryColor(defaults.secondary);
-    setFont(defaults.font);
-    setLogoURL(defaults.logoURL);
-    applySettings(resetConfig);
+    drawerManager.inject();
   };
 
   return (
@@ -661,10 +605,22 @@ const ThemeCustomizer = () => {
         helperText="Enter a valid image URL for the logo (PNG recommended)"
       />
       <Box mt={2} display="flex" justifyContent="space-between" gap={2}>
-        <Button onClick={savePreferences} variant="contained">
+        <Button
+          onClick={() => applySettings({ primaryColor, secondaryColor, font, logoURL })}
+          variant="contained"
+        >
           Save
         </Button>
-        <Button onClick={resetPreferences} variant="outlined">
+        <Button
+          onClick={() => {
+            setPrimaryColor(defaults.primary);
+            setSecondaryColor(defaults.secondary);
+            setFont(defaults.font);
+            setLogoURL(defaults.logoURL);
+            applySettings({ ...defaults });
+          }}
+          variant="outlined"
+        >
           Reset
         </Button>
       </Box>
@@ -672,32 +628,17 @@ const ThemeCustomizer = () => {
   );
 };
 
-registerPluginSettings('enbuild-headlamp-theme', ThemeCustomizer, false);
+// Initialize application
+(() => {
+  // Apply initial theme
+  const initialConfig = store.get() || {};
+  injectThemeStyle(initialConfig);
+  if (initialConfig.font) loadFont(initialConfig.font);
+  if (initialConfig.logoURL) registerAppLogo(SimpleLogo);
 
-// Handle footer icon clicks for direct menu toggling
-document.addEventListener('click', event => {
-  const target = event.target as HTMLElement;
-  const drawer = document.querySelector('.MuiDrawer-paper');
+  // Initialize drawer
+  drawerManager.init();
 
-  if (!drawer) return;
-
-  // Handle direct footer icon clicks
-  const newUIElement = target.closest('[title="New UI"]') || target.closest('.new-ui');
-  if (newUIElement) {
-    menuManager.activateExclusiveNewUI(drawer);
-  }
-
-  const homeLogo = target.closest('.home-logo');
-  if (homeLogo) {
-    menuManager.showDefaultMenu(drawer);
-    navigateTo('/dashboard');
-  }
-});
-
-// Apply window load event handler
-window.addEventListener('load', () => {
-  if (!document.querySelector('.drawer-logo-container')) injectDrawerIcons();
-  window.addEventListener('popstate', () => {
-    if (!document.querySelector('.drawer-logo-container')) injectDrawerIcons();
-  });
-});
+  // Register plugin settings
+  registerPluginSettings('enbuild-headlamp-theme', ThemeCustomizer, false);
+})();
