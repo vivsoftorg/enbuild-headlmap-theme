@@ -54,8 +54,9 @@ interface ThemeOptions {
 
 const store = new ConfigStore<ThemeOptions>('enbuild-customiser-theme');
 
-// Menu data - Updated to match the order shown in the screenshot
+// Menu data - Updated to match exactly what's shown in the screenshot
 const k8sMenuItems = [
+  { text: 'Overview', path: '/overview', icon: <LayoutDashboard size={20} /> },
   { text: 'Pipelines', path: '/pipelines', icon: <LayoutList size={20} /> },
   { text: 'Marketplace', path: '/marketplace', icon: <Store size={20} /> },
   { text: 'Components', path: '/components', icon: <Cpu size={20} /> },
@@ -154,7 +155,11 @@ const injectThemeStyle = options => {
     }
 
     /* Custom Menu Styles */
-    .custom-menu-list { width: 100%; padding: 8px 0 !important; }
+    .custom-menu-list { 
+      width: 100%; 
+      padding: 8px 0 !important; 
+      margin-top: 60px; /* Add top margin to prevent items from being hidden behind header */
+    }
     .custom-menu-list .MuiListItem-root {
       padding: 8px 16px; cursor: pointer; border-radius: 4px; margin: 2px 8px;
       transition: background-color 0.3s ease;
