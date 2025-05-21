@@ -18,6 +18,7 @@ import {
 import { Cpu, GitBranchPlus, LayoutDashboard, LayoutList, Settings, Store } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
+import OverviewDemo from './pages/overview'; // adjust path as needed
 
 // Config & Types
 const defaults = {
@@ -238,8 +239,45 @@ const appManager = (() => {
   let activeMenuType = 'default';
   let exclusiveMode = false;
 
-  const navigateTo = path =>
-    window.location.pathname !== path ? (window.location.href = path) : null;
+  // Improved navigation function with route handling
+  const navigateTo = path => {
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, '', path);
+
+      // Create a custom navigation event for components to listen for
+      const navEvent = new CustomEvent('app-navigation', { detail: { path } });
+      window.dispatchEvent(navEvent);
+
+      // Also dispatch popstate for compatibility with existing listeners
+      window.dispatchEvent(new PopStateEvent('popstate'));
+
+      // Handle the overview route specifically
+      if (path === '/overview') {
+        renderOverviewPage();
+      }
+    }
+  };
+
+  // Function to render the overview page
+  const renderOverviewPage = () => {
+    const contentContainer =
+      document.querySelector('#content-container') || document.querySelector('main');
+
+    if (contentContainer) {
+      // Create a temporary container for ReactDOM to render into
+      const overviewContainer = document.createElement('div');
+      overviewContainer.id = 'overview-page';
+
+      // Clear existing content and append our container
+      contentContainer.innerHTML = '';
+      contentContainer.appendChild(overviewContainer);
+
+      // Render the Overview component
+      ReactDOM.render(<OverviewDemo />, overviewContainer);
+    } else {
+      console.error('Could not find content container to render overview page');
+    }
+  };
 
   // Create menu list in drawer
   const createMenuList = (items, drawer) => {
@@ -253,6 +291,11 @@ const appManager = (() => {
       listItem.className = 'MuiListItem-root';
       listItem.style.display = 'flex';
       listItem.style.alignItems = 'center';
+
+      // Set the item as active if it matches the current path
+      if (window.location.pathname === item.path) {
+        listItem.classList.add('Mui-selected');
+      }
 
       // Add icon if available
       if (item.icon) {
@@ -428,14 +471,40 @@ const appManager = (() => {
     return true;
   };
 
+  // Listen for route changes to update selected menu item
+  const setupRouteListener = () => {
+    window.addEventListener('popstate', () => {
+      const drawer = document.querySelector('.MuiDrawer-paper');
+      if (!drawer) return;
+
+      const menuItems = drawer.querySelectorAll('.custom-menu-list .MuiListItem-root');
+      menuItems.forEach(item => {
+        const textElement = item.querySelector('.MuiListItemText-primary');
+        if (!textElement) return;
+
+        const menuText = textElement.textContent;
+        const menuItem = k8sMenuItems.find(mi => mi.text === menuText);
+
+        if (menuItem && menuItem.path === window.location.pathname) {
+          item.classList.add('Mui-selected');
+        } else {
+          item.classList.remove('Mui-selected');
+        }
+      });
+    });
+  };
+
   // Initialize the manager
   const init = () => {
     // Try to initialize immediately
-    if (injectDrawerIcons()) return;
+    if (injectDrawerIcons()) {
+      setupRouteListener();
+    }
 
     // Use MutationObserver for dynamic drawer detection
     const observer = new MutationObserver((_, obs) => {
       if (document.querySelector('.MuiDrawer-paper') && injectDrawerIcons()) {
+        setupRouteListener();
         obs.disconnect();
       }
     });
@@ -445,11 +514,49 @@ const appManager = (() => {
     [
       [
         'DOMContentLoaded',
-        () => !document.querySelector('.drawer-logo-container') && injectDrawerIcons(),
+        () => {
+          if (!document.querySelector('.drawer-logo-container')) {
+            injectDrawerIcons();
+            setupRouteListener();
+          }
+
+          // Check if we're on the overview page and render it if needed
+          if (window.location.pathname === '/overview') {
+            renderOverviewPage();
+          }
+        },
       ],
-      ['load', () => !document.querySelector('.drawer-logo-container') && injectDrawerIcons()],
-      ['popstate', () => !document.querySelector('.drawer-logo-container') && injectDrawerIcons()],
+      [
+        'load',
+        () => {
+          if (!document.querySelector('.drawer-logo-container')) {
+            injectDrawerIcons();
+            setupRouteListener();
+          }
+        },
+      ],
+      [
+        'popstate',
+        () => {
+          if (!document.querySelector('.drawer-logo-container')) {
+            injectDrawerIcons();
+          }
+
+          // Check if we're on the overview page after navigation
+          if (window.location.pathname === '/overview') {
+            renderOverviewPage();
+          }
+        },
+      ],
     ].forEach(([event, handler]) => window.addEventListener(event, handler));
+
+    // Add a listener for the custom navigation event
+    window.addEventListener('app-navigation', event => {
+      const path = event.detail?.path;
+      if (path === '/overview') {
+        renderOverviewPage();
+      }
+    });
 
     // Handle clicks for direct menu toggling
     document.addEventListener('click', event => {
@@ -485,6 +592,8 @@ const appManager = (() => {
     showDefaultMenu,
     toggleK8sMenu,
     activateExclusiveNewUI,
+    navigateTo,
+    renderOverviewPage,
     getActiveMenuType: () => activeMenuType,
     isExclusiveMode: () => exclusiveMode,
   };
@@ -639,4 +748,10 @@ const ThemeCustomizer = () => {
 
   // Register plugin settings
   registerPluginSettings('enbuild-headlamp-theme', ThemeCustomizer, false);
+
+  // Check if we're already on the overview page on load
+  if (window.location.pathname === '/overview') {
+    // Small delay to ensure DOM is ready
+    setTimeout(() => appManager.renderOverviewPage(), 100);
+  }
 })();
