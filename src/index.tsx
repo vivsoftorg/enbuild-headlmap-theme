@@ -620,7 +620,6 @@ export function SimpleLogo(props: AppLogoProps) {
         objectFit: 'contain',
         position: 'absolute',
         top: '10px',
-        left: '250px',
         zIndex: 10,
         padding: '2px',
         borderRadius: '4px',
