@@ -18,7 +18,7 @@ import {
 import { Cpu, GitBranchPlus, LayoutDashboard, LayoutList, Settings, Store } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
-import OverviewDemo from './pages/overview'; // adjust path as needed
+import OverviewDemo from './pages/overview/overview';
 
 // Config & Types
 const defaults = {
