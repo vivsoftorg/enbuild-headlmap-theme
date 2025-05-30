@@ -46,16 +46,8 @@ const fontOptions = [
   'Lato',
 ];
 
-interface ThemeOptions {
-  primaryColor?: string;
-  secondaryColor?: string;
-  font?: string;
-  logoURL?: string;
-}
+const store = new ConfigStore('enbuild-customiser-theme');
 
-const store = new ConfigStore<ThemeOptions>('enbuild-customiser-theme');
-
-// Menu data for the custom navigation
 const k8sMenuItems = [
   { text: 'Overview', path: '/overview', icon: <LayoutDashboard size={20} /> },
   { text: 'Pipelines', path: '/pipelines', icon: <LayoutList size={20} /> },
@@ -68,24 +60,20 @@ const k8sMenuItems = [
 // Helper Functions
 const loadFont = (fontName = defaults.font) => {
   const formattedFont = fontName.replace(/ /g, '+');
-  const fontLinkId = 'custom-font-loader';
-  const styleId = 'custom-font-style';
+  ['custom-font-loader', 'custom-font-style'].forEach(id => document.getElementById(id)?.remove());
 
-  // Remove existing elements
-  [fontLinkId, styleId].forEach(id => document.getElementById(id)?.remove());
-
-  // Add font link if needed
   if (!['Times New Roman', 'Arial', 'Courier New', 'Georgia'].includes(fontName)) {
     const link = document.createElement('link');
-    link.id = fontLinkId;
-    link.rel = 'stylesheet';
-    link.href = `https://fonts.googleapis.com/css2?family=${formattedFont}&display=swap`;
+    Object.assign(link, {
+      id: 'custom-font-loader',
+      rel: 'stylesheet',
+      href: `https://fonts.googleapis.com/css2?family=${formattedFont}&display=swap`,
+    });
     document.head.appendChild(link);
   }
 
-  // Add font style
   const style = document.createElement('style');
-  style.id = styleId;
+  style.id = 'custom-font-style';
   style.innerHTML = `body, * { font-family: "${fontName}", sans-serif !important; }`;
   document.head.appendChild(style);
 };
@@ -93,211 +81,143 @@ const loadFont = (fontName = defaults.font) => {
 const injectThemeStyle = options => {
   const primaryColor = options.primaryColor || defaults.primary;
   const secondaryColor = options.secondaryColor || defaults.secondary;
-  const styleId = 'custom-theme-style';
 
-  document.getElementById(styleId)?.remove();
+  document.getElementById('custom-theme-style')?.remove();
 
   const style = document.createElement('style');
-  style.id = styleId;
+  style.id = 'custom-theme-style';
   style.innerHTML = `
-    /* Buttons */
     .MuiButton-contained { background-color: ${primaryColor} !important; color: ${secondaryColor} !important; }
     .MuiButton-contained:hover { background-color: ${primaryColor}cc !important; }
-    
-    /* Drawer and navigation */
     .MuiDrawer-paper { background-color: ${primaryColor} !important; }
-    .MuiDrawer-paper > .MuiListItem-root, 
-    .MuiDrawer-paper > .MuiListItem-root .MuiListItemText-primary,
-    .MuiDrawer-paper .custom-menu-list .MuiListItem-root,
-    .MuiDrawer-paper .custom-menu-list .MuiListItemText-primary { color: ${secondaryColor} !important; }
-    
-    .MuiDrawer-paper > .MuiListItem-root:hover,
-    .MuiDrawer-paper > .MuiListItem-root.Mui-selected,
-    .MuiDrawer-paper .custom-menu-list .MuiListItem-root:hover,
-    .MuiDrawer-paper .custom-menu-list .MuiListItem-root.Mui-selected { 
-      background-color: ${secondaryColor} !important; color: ${primaryColor} !important; 
-    }
-    
-    .MuiDrawer-paper > .MuiListItem-root:hover .MuiListItemText-primary,
-    .MuiDrawer-paper > .MuiListItem-root.Mui-selected .MuiListItemText-primary,
-    .MuiDrawer-paper .custom-menu-list .MuiListItem-root:hover .MuiListItemText-primary,
-    .MuiDrawer-paper .custom-menu-list .MuiListItem-root.Mui-selected .MuiListItemText-primary { 
-      color: ${primaryColor} !important; 
-    }
-    
-    /* Collapsed menu items */
-    .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root {
-      background-color: transparent !important; color: ${secondaryColor} !important;
-      transition: color 0.3s, background-color 0.3s !important;
-    }
-    
-    .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root:hover,
-    .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root.Mui-selected {
-      background-color: ${secondaryColor} !important; color: ${primaryColor} !important;
-    }
-    
-    /* Icons */
+    .MuiDrawer-paper > .MuiListItem-root, .MuiDrawer-paper > .MuiListItem-root .MuiListItemText-primary, .MuiDrawer-paper .custom-menu-list .MuiListItem-root, .MuiDrawer-paper .custom-menu-list .MuiListItemText-primary { color: ${secondaryColor} !important; }
+    .MuiDrawer-paper > .MuiListItem-root:hover, .MuiDrawer-paper > .MuiListItem-root.Mui-selected, .MuiDrawer-paper .custom-menu-list .MuiListItem-root:hover, .MuiDrawer-paper .custom-menu-list .MuiListItem-root.Mui-selected { background-color: ${secondaryColor} !important; color: ${primaryColor} !important; }
+    .MuiDrawer-paper > .MuiListItem-root:hover .MuiListItemText-primary, .MuiDrawer-paper > .MuiListItem-root.Mui-selected .MuiListItemText-primary, .MuiDrawer-paper .custom-menu-list .MuiListItem-root:hover .MuiListItemText-primary, .MuiDrawer-paper .custom-menu-list .MuiListItem-root.Mui-selected .MuiListItemText-primary { color: ${primaryColor} !important; }
+    .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root { background-color: transparent !important; color: ${secondaryColor} !important; transition: color 0.3s, background-color 0.3s !important; }
+    .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root:hover, .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root.Mui-selected { background-color: ${secondaryColor} !important; color: ${primaryColor} !important; }
     .MuiDrawer-paper .MuiListItemIcon, .MuiDrawer-paper .MuiSvgIcon-root { color: ${secondaryColor} !important; }
-    .MuiDrawer-paper > .MuiListItem-root:hover .MuiListItemIcon,
-    .MuiDrawer-paper > .MuiListItem-root.Mui-selected .MuiListItemIcon,
-    .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root:hover .MuiListItemIcon,
-    .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root.Mui-selected .MuiListItemIcon { 
-      color: ${primaryColor} !important; 
-    }
-    
-    /* Header */
+    .MuiDrawer-paper > .MuiListItem-root:hover .MuiListItemIcon, .MuiDrawer-paper > .MuiListItem-root.Mui-selected .MuiListItemIcon, .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root:hover .MuiListItemIcon, .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root.Mui-selected .MuiListItemIcon { color: ${primaryColor} !important; }
     .MuiAppBar-root { background-color: ${primaryColor} !important; color: ${secondaryColor} !important; }
-    .MuiAppBar-root *, .MuiAppBar-root input, .MuiAppBar-root input::placeholder, .MuiAppBar-root .MuiSvgIcon-root, 
-    .MuiAppBar-root .MuiIconButton-root, .MuiAppBar-root button, .MuiAppBar-root a { 
-      color: ${secondaryColor} !important; 
-    }
+    .MuiAppBar-root *, .MuiAppBar-root input, .MuiAppBar-root input::placeholder, .MuiAppBar-root .MuiSvgIcon-root, .MuiAppBar-root .MuiIconButton-root, .MuiAppBar-root button, .MuiAppBar-root a { color: ${secondaryColor} !important; }
     .MuiAppBar-root input::placeholder { color: ${secondaryColor}99 !important; }
-    
-    /* Search field */
-    .MuiAppBar-root .MuiInputBase-root, .MuiAppBar-root .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline,
-    .MuiAppBar-root .MuiInput-underline:before, .MuiAppBar-root .MuiInput-underline:after,
-    .MuiAppBar-root .MuiInput-underline:hover:not(.Mui-disabled):before,
-    .MuiAppBar-root .MuiFilledInput-underline:before, .MuiAppBar-root .MuiFilledInput-underline:after,
-    .MuiAppBar-root input[type="text"], .MuiAppBar-root input[type="search"],
-    .MuiAppBar-root .MuiInput-root::before, .MuiAppBar-root .MuiInput-root::after {
-      border-color: ${secondaryColor} !important; caret-color: ${secondaryColor} !important;
-    }
-
-    /* Custom Menu Styles */
-    .custom-menu-list { 
-      width: 100%; padding: 8px 0 !important; margin-top: 60px;
-    }
-    
-    .custom-menu-list .MuiListItem-root {
-      padding: 8px 16px; cursor: pointer; border-radius: 4px; margin: 2px 8px;
-      transition: background-color 0.3s ease;
-    }
-    
+    .MuiAppBar-root .MuiInputBase-root, .MuiAppBar-root .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline, .MuiAppBar-root .MuiInput-underline:before, .MuiAppBar-root .MuiInput-underline:after, .MuiAppBar-root .MuiInput-underline:hover:not(.Mui-disabled):before, .MuiAppBar-root .MuiFilledInput-underline:before, .MuiAppBar-root .MuiFilledInput-underline:after, .MuiAppBar-root input[type="text"], .MuiAppBar-root input[type="search"], .MuiAppBar-root .MuiInput-root::before, .MuiAppBar-root .MuiInput-root::after { border-color: ${secondaryColor} !important; caret-color: ${secondaryColor} !important; }
+    .custom-menu-list { width: 100%; padding: 8px 0 !important; margin-top: 60px; }
+    .custom-menu-list .MuiListItem-root { padding: 8px 16px; cursor: pointer; border-radius: 4px; margin: 2px 8px; transition: background-color 0.3s ease; }
     .custom-menu-list .MuiListItem-root:hover { background-color: ${secondaryColor} !important; }
     .custom-menu-list .MuiListItem-root:hover .MuiListItemText-primary { color: ${primaryColor} !important; }
-    
-    .drawer-logo-container {
-      position: sticky !important; bottom: 0 !important; background-color: ${primaryColor} !important;
-      border-top: 1px solid ${secondaryColor}33 !important;
-    }
-    
-    /* Hide default navigation when custom menu is active */
+    .drawer-logo-container { position: sticky !important; bottom: 0 !important; background-color: ${primaryColor} !important; border-top: 1px solid ${secondaryColor}33 !important; width: 100%; padding: 16px; margin-top: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1200; }
     .MuiDrawer-paper.custom-menu-active .default-nav-item { display: none !important; }
-    
-    /* Hide ALL default items in exclusive mode */
-    .MuiDrawer-paper.exclusive-menu-mode .default-nav-item,
-    .MuiDrawer-paper.exclusive-menu-mode > *:not(.custom-menu-list):not(.drawer-logo-container) { 
-      display: none !important; 
-    }
-    
-    /* Drawer logos */
-    .drawer-logo-container {
-      width: 100%; padding: 16px; margin-top: auto; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; z-index: 1200;
-    }
-    
-    .logo-layout {
-      display: flex; justify-content: center; align-items: center; gap: 16px;
-      width: 100%; transition: flex-direction 0.3s ease;
-    }
-    
+    .MuiDrawer-paper.exclusive-menu-mode .default-nav-item, .MuiDrawer-paper.exclusive-menu-mode > *:not(.custom-menu-list):not(.drawer-logo-container) { display: none !important; }
+    .logo-layout { display: flex; justify-content: center; align-items: center; gap: 16px; width: 100%; transition: flex-direction 0.3s ease; }
     .MuiDrawer-paper.collapsed .logo-layout { flex-direction: column; }
     .MuiDrawer-paper:not(.collapsed) .logo-layout { flex-direction: row; }
-    
-    .drawer-logo {
-      display: flex; flex-direction: column; align-items: center; cursor: pointer; flex: 1;
-    }
-    
-    .drawer-logo .mui-icon {
-      width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
-      background-color: white; border-radius: 4px; padding: 4px;
-    }
-    
+    .drawer-logo { display: flex; flex-direction: column; align-items: center; cursor: pointer; flex: 1; }
+    .drawer-logo .mui-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background-color: white; border-radius: 4px; padding: 4px; }
     .drawer-logo .mui-icon svg { width: 32px; height: 32px; color: ${primaryColor} !important; }
     .drawer-logo .logo-text { margin-top: 8px; color: ${secondaryColor}; font-size: 12px; text-align: center; }
     .MuiDrawer-paper.collapsed .logo-text { display: none; }
-    
     .drawer-logo:hover { opacity: 0.8; transition: all 0.2s ease; }
     .drawer-logo:hover .mui-icon { transform: scale(1.05); box-shadow: 0 0 5px rgba(255,255,255,0.3); }
-
-    /* Indicator for active menu */
-    .drawer-logo.active .mui-icon {
-      box-shadow: 0 0 8px rgba(255,255,255,0.5);
-      border: 2px solid ${secondaryColor};
-    }
-
-    /* Menu item icons */
+    .drawer-logo.active .mui-icon { box-shadow: 0 0 8px rgba(255,255,255,0.5); border: 2px solid ${secondaryColor}; }
     .menu-item-icon { display: flex; align-items: center; margin-right: 12px; color: ${secondaryColor}; }
-    .MuiListItem-root:hover .menu-item-icon svg,
-    .MuiListItem-root.Mui-selected .menu-item-icon svg { color: ${primaryColor} !important; }
+    .MuiListItem-root:hover .menu-item-icon svg, .MuiListItem-root.Mui-selected .menu-item-icon svg { color: ${primaryColor} !important; }
   `;
   document.head.appendChild(style);
 };
 
-// Consolidated Menu and Drawer Management
+// App Manager
 const appManager = (() => {
   let activeMenuType = 'default';
   let exclusiveMode = false;
+  let currentOverviewContainer = null;
 
-  // Improved navigation function with route handling
   const navigateTo = path => {
-    if (window.location.pathname !== path) {
-      window.history.pushState({}, '', path);
+    if (window.location.pathname === path) return;
 
-      // Create a custom navigation event for components to listen for
-      const navEvent = new CustomEvent('app-navigation', { detail: { path } });
-      window.dispatchEvent(navEvent);
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new CustomEvent('app-navigation', { detail: { path } }));
+    window.dispatchEvent(new PopStateEvent('popstate'));
 
-      // Also dispatch popstate for compatibility with existing listeners
-      window.dispatchEvent(new PopStateEvent('popstate'));
+    // Handle overview route
+    if (path === '/overview') {
+      renderOverviewPage();
+    } else {
+      // Clean up overview page when navigating away
+      cleanupOverviewPage();
+    }
+  };
 
-      // Handle the overview route specifically
-      if (path === '/overview') {
-        renderOverviewPage();
+  const cleanupOverviewPage = () => {
+    if (currentOverviewContainer) {
+      try {
+        ReactDOM.unmountComponentAtNode(currentOverviewContainer);
+        currentOverviewContainer.remove();
+        currentOverviewContainer = null;
+      } catch (error) {
+        console.error('Error cleaning up overview page:', error);
       }
     }
   };
 
-  // Function to render the overview page
   const renderOverviewPage = () => {
-    const contentContainer =
-      document.querySelector('#content-container') || document.querySelector('main');
+    // Clean up any existing overview first
+    cleanupOverviewPage();
 
-    if (contentContainer) {
-      // Create a temporary container for ReactDOM to render into
-      const overviewContainer = document.createElement('div');
-      overviewContainer.id = 'overview-page';
+    setTimeout(() => {
+      const container =
+        document.querySelector('#content-container') ||
+        document.querySelector('main') ||
+        document.querySelector('[role="main"]') ||
+        document.body.querySelector('div[class*="content"]') ||
+        document.querySelector('#root > div > div:last-child');
 
-      // Clear existing content and append our container
-      contentContainer.innerHTML = '';
-      contentContainer.appendChild(overviewContainer);
+      if (container) {
+        // Create new overview container without clearing existing content
+        const overviewDiv = document.createElement('div');
+        overviewDiv.id = 'overview-page';
+        overviewDiv.style.cssText = `
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: #fff;
+          z-index: 1000;
+          padding: 20px;
+          overflow-y: auto;
+        `;
 
-      // Render the Overview component
-      ReactDOM.render(<OverviewDemo />, overviewContainer);
-    } else {
-      console.error('Could not find content container to render overview page');
-    }
+        // Store reference for cleanup
+        currentOverviewContainer = overviewDiv;
+
+        // Append to container (don't replace content)
+        container.appendChild(overviewDiv);
+
+        // Render the overview component
+        try {
+          ReactDOM.render(<OverviewDemo />, overviewDiv);
+          console.log('Overview page rendered successfully');
+        } catch (error) {
+          console.error('Error rendering overview page:', error);
+        }
+      } else {
+        console.error('Could not find content container for overview page');
+      }
+    }, 100);
   };
 
-  // Create menu list in drawer
   const createMenuList = (items, drawer) => {
     drawer.querySelector('.custom-menu-list')?.remove();
-
     const menuList = document.createElement('ul');
     menuList.className = 'MuiList-root custom-menu-list';
 
     items.forEach(item => {
       const listItem = document.createElement('li');
-      listItem.className = 'MuiListItem-root';
-      listItem.style.display = 'flex';
-      listItem.style.alignItems = 'center';
+      listItem.className = `MuiListItem-root ${
+        window.location.pathname === item.path ? 'Mui-selected' : ''
+      }`;
+      listItem.style.cssText = 'display: flex; align-items: center;';
 
-      // Set the item as active if it matches the current path
-      if (window.location.pathname === item.path) {
-        listItem.classList.add('Mui-selected');
-      }
-
-      // Add icon if available
       if (item.icon) {
         const iconElement = document.createElement('span');
         iconElement.className = 'menu-item-icon';
@@ -312,11 +232,24 @@ const appManager = (() => {
       textDiv.innerHTML = `<span class="MuiListItemText-primary">${item.text}</span>`;
       listItem.appendChild(textDiv);
 
-      listItem.addEventListener('click', () => navigateTo(item.path));
+      listItem.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Update menu selection immediately
+        drawer.querySelectorAll('.custom-menu-list .MuiListItem-root').forEach(li => {
+          li.classList.remove('Mui-selected');
+        });
+        listItem.classList.add('Mui-selected');
+
+        // Navigate to the path
+        navigateTo(item.path);
+      });
+
       menuList.appendChild(listItem);
     });
 
-    drawer.insertBefore(menuList, drawer.firstChild || null);
+    drawer.insertBefore(menuList, drawer.firstChild);
     return menuList;
   };
 
@@ -324,49 +257,30 @@ const appManager = (() => {
     const logoDiv = document.createElement('div');
     logoDiv.className = `drawer-logo ${className}`;
     logoDiv.title = title;
-
-    const iconContainer = document.createElement('div');
-    iconContainer.className = 'mui-icon';
-
-    const svgNS = 'http://www.w3.org/2000/svg';
-    const svg = document.createElementNS(svgNS, 'svg');
-    svg.setAttribute('viewBox', '0 0 24 24');
-    svg.setAttribute('width', '32');
-    svg.setAttribute('height', '32');
-
-    const path = document.createElementNS(svgNS, 'path');
-    path.setAttribute('d', iconPath);
-    path.setAttribute('fill', defaults.primary);
-
-    svg.appendChild(path);
-    iconContainer.appendChild(svg);
-    logoDiv.appendChild(iconContainer);
-
-    const logoText = document.createElement('div');
-    logoText.className = 'logo-text';
-    logoText.textContent = text;
-    logoDiv.appendChild(logoText);
-
+    logoDiv.innerHTML = `
+      <div class="mui-icon">
+        <svg viewBox="0 0 24 24" width="32" height="32">
+          <path d="${iconPath}" fill="${defaults.primary}"/>
+        </svg>
+      </div>
+      <div class="logo-text">${text}</div>
+    `;
     logoDiv.addEventListener('click', onClick);
     return logoDiv;
   };
 
-  // Setup drawer elements and structure
   const setupDrawer = drawer => {
-    // Mark default navigation items
     drawer.querySelectorAll('.MuiListItem-root:not(.custom-menu-item)').forEach(item => {
       if (!item.classList.contains('custom-menu-item') && !item.classList.contains('drawer-logo')) {
         item.classList.add('default-nav-item');
       }
     });
 
-    // Setup resize detection
     const checkCollapsed = () =>
       drawer.classList[drawer.clientWidth < 100 ? 'add' : 'remove']('collapsed');
     checkCollapsed();
     new ResizeObserver(checkCollapsed).observe(drawer);
 
-    // Default to standard menu if no special menu is active
     if (
       !drawer.classList.contains('custom-menu-active') &&
       !drawer.classList.contains('exclusive-menu-mode')
@@ -375,15 +289,18 @@ const appManager = (() => {
     }
   };
 
-  // Menu state management functions
   const showDefaultMenu = drawer => {
     if (!drawer) return;
     activeMenuType = 'default';
     exclusiveMode = false;
     drawer.classList.remove('custom-menu-active', 'exclusive-menu-mode');
     drawer.querySelector('.custom-menu-list')?.remove();
+
+    // Clean up overview page when switching to default menu
+    cleanupOverviewPage();
+
     document
-      .querySelectorAll('.kubernetes-logo, .new-ui-logo')
+      .querySelectorAll('.new-ui-logo, .kubernetes-logo')
       .forEach(el => el.classList.remove('active'));
   };
 
@@ -397,14 +314,13 @@ const appManager = (() => {
     if (isK8sActive) {
       drawer.classList.remove('custom-menu-active');
       drawer.querySelector('.custom-menu-list')?.remove();
+      cleanupOverviewPage();
     } else {
       drawer.classList.add('custom-menu-active');
       createMenuList(k8sMenuItems, drawer);
     }
 
-    // Update logo active states
-    const k8sLogo = document.querySelector('.kubernetes-logo');
-    if (k8sLogo) k8sLogo.classList[isK8sActive ? 'remove' : 'add']('active');
+    document.querySelector('.kubernetes-logo')?.classList[isK8sActive ? 'remove' : 'add']('active');
     document.querySelector('.new-ui-logo')?.classList.remove('active');
   };
 
@@ -418,24 +334,19 @@ const appManager = (() => {
     document.querySelector('.new-ui-logo')?.classList.add('active');
   };
 
-  // Inject drawer icons and manage UI state
   const injectDrawerIcons = () => {
     document.querySelectorAll('.drawer-logo-container').forEach(c => c.remove());
-
     const drawer = document.querySelector('.MuiDrawer-paper');
     if (!drawer) return false;
 
     setupDrawer(drawer);
 
-    // Create logo container
     const logoContainer = document.createElement('div');
     logoContainer.className = 'drawer-logo-container';
-
     const logoLayout = document.createElement('div');
     logoLayout.className = 'logo-layout';
     logoContainer.appendChild(logoLayout);
 
-    // Add logos
     logoLayout.appendChild(
       createLogoElement(
         'new-ui-logo',
@@ -445,7 +356,6 @@ const appManager = (() => {
         () => activateExclusiveNewUI(drawer)
       )
     );
-
     logoLayout.appendChild(
       createLogoElement(
         'home-logo',
@@ -461,47 +371,40 @@ const appManager = (() => {
 
     drawer.appendChild(logoContainer);
 
-    // Set active logo based on current mode
-    if (exclusiveMode) {
-      document.querySelector('.new-ui-logo')?.classList.add('active');
-    } else if (activeMenuType === 'k8s') {
+    if (exclusiveMode) document.querySelector('.new-ui-logo')?.classList.add('active');
+    else if (activeMenuType === 'k8s')
       document.querySelector('.kubernetes-logo')?.classList.add('active');
-    }
 
     return true;
   };
 
-  // Listen for route changes to update selected menu item
   const setupRouteListener = () => {
     window.addEventListener('popstate', () => {
       const drawer = document.querySelector('.MuiDrawer-paper');
       if (!drawer) return;
 
-      const menuItems = drawer.querySelectorAll('.custom-menu-list .MuiListItem-root');
-      menuItems.forEach(item => {
+      drawer.querySelectorAll('.custom-menu-list .MuiListItem-root').forEach(item => {
         const textElement = item.querySelector('.MuiListItemText-primary');
         if (!textElement) return;
 
-        const menuText = textElement.textContent;
-        const menuItem = k8sMenuItems.find(mi => mi.text === menuText);
-
-        if (menuItem && menuItem.path === window.location.pathname) {
-          item.classList.add('Mui-selected');
-        } else {
-          item.classList.remove('Mui-selected');
-        }
+        const menuItem = k8sMenuItems.find(mi => mi.text === textElement.textContent);
+        item.classList[menuItem && menuItem.path === window.location.pathname ? 'add' : 'remove'](
+          'Mui-selected'
+        );
       });
+
+      // Handle overview page on back/forward navigation
+      if (window.location.pathname === '/overview') {
+        renderOverviewPage();
+      } else {
+        cleanupOverviewPage();
+      }
     });
   };
 
-  // Initialize the manager
   const init = () => {
-    // Try to initialize immediately
-    if (injectDrawerIcons()) {
-      setupRouteListener();
-    }
+    if (injectDrawerIcons()) setupRouteListener();
 
-    // Use MutationObserver for dynamic drawer detection
     const observer = new MutationObserver((_, obs) => {
       if (document.querySelector('.MuiDrawer-paper') && injectDrawerIcons()) {
         setupRouteListener();
@@ -510,57 +413,28 @@ const appManager = (() => {
     });
     observer.observe(document.body, { childList: true, subtree: true });
 
-    // Setup event listeners
-    [
-      [
-        'DOMContentLoaded',
-        () => {
-          if (!document.querySelector('.drawer-logo-container')) {
-            injectDrawerIcons();
-            setupRouteListener();
-          }
+    const initHandler = () => {
+      if (!document.querySelector('.drawer-logo-container')) {
+        injectDrawerIcons();
+        setupRouteListener();
+      }
+      if (window.location.pathname === '/overview') renderOverviewPage();
+    };
 
-          // Check if we're on the overview page and render it if needed
-          if (window.location.pathname === '/overview') {
-            renderOverviewPage();
-          }
-        },
-      ],
-      [
-        'load',
-        () => {
-          if (!document.querySelector('.drawer-logo-container')) {
-            injectDrawerIcons();
-            setupRouteListener();
-          }
-        },
-      ],
-      [
-        'popstate',
-        () => {
-          if (!document.querySelector('.drawer-logo-container')) {
-            injectDrawerIcons();
-          }
+    ['DOMContentLoaded', 'load', 'popstate'].forEach(event =>
+      window.addEventListener(event, initHandler)
+    );
 
-          // Check if we're on the overview page after navigation
-          if (window.location.pathname === '/overview') {
-            renderOverviewPage();
-          }
-        },
-      ],
-    ].forEach(([event, handler]) => window.addEventListener(event, handler));
-
-    // Add a listener for the custom navigation event
     window.addEventListener('app-navigation', event => {
-      const path = event.detail?.path;
-      if (path === '/overview') {
+      if (event.detail?.path === '/overview') {
         renderOverviewPage();
+      } else {
+        cleanupOverviewPage();
       }
     });
 
-    // Handle clicks for direct menu toggling
     document.addEventListener('click', event => {
-      const target = event.target as HTMLElement;
+      const target = event.target;
       const drawer = document.querySelector('.MuiDrawer-paper');
       if (!drawer) return;
 
@@ -572,7 +446,6 @@ const appManager = (() => {
       }
     });
 
-    // Periodic retry as fallback
     let attempts = 0;
     const retryInterval = setInterval(() => {
       if (
@@ -594,16 +467,16 @@ const appManager = (() => {
     activateExclusiveNewUI,
     navigateTo,
     renderOverviewPage,
+    cleanupOverviewPage,
     getActiveMenuType: () => activeMenuType,
     isExclusiveMode: () => exclusiveMode,
   };
 })();
 
 // Logo component for header
-export function SimpleLogo(props: AppLogoProps) {
+export function SimpleLogo(props) {
   const { className = '' } = props;
-  const useConf = store.useConfig();
-  const config = useConf();
+  const config = store.useConfig()();
 
   if (!config?.logoURL) return null;
 
@@ -624,7 +497,7 @@ export function SimpleLogo(props: AppLogoProps) {
         padding: '2px',
         borderRadius: '4px',
       }}
-      onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+      onError={e => {
         console.error('Error loading logo: ', e.currentTarget.src);
         e.currentTarget.style.display = 'none';
       }}
@@ -670,7 +543,6 @@ const ThemeCustomizer = () => {
         margin="dense"
         InputLabelProps={{ shrink: true }}
       />
-
       <TextField
         type="color"
         label="Secondary Color (Text/Icon in Header & Drawer)"
@@ -716,7 +588,6 @@ const ThemeCustomizer = () => {
         >
           Save
         </Button>
-
         <Button
           onClick={() => {
             setPrimaryColor(defaults.primary);
@@ -736,21 +607,15 @@ const ThemeCustomizer = () => {
 
 // Initialize application
 (() => {
-  // Apply initial theme
   const initialConfig = store.get() || {};
   injectThemeStyle(initialConfig);
   if (initialConfig.font) loadFont(initialConfig.font);
   if (initialConfig.logoURL) registerAppLogo(SimpleLogo);
 
-  // Initialize drawer
   appManager.init();
-
-  // Register plugin settings
   registerPluginSettings('enbuild-headlamp-theme', ThemeCustomizer, false);
 
-  // Check if we're already on the overview page on load
   if (window.location.pathname === '/overview') {
-    // Small delay to ensure DOM is ready
     setTimeout(() => appManager.renderOverviewPage(), 100);
   }
 })();
