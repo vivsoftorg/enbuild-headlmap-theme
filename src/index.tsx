@@ -79,9 +79,7 @@ const loadFont = (fontName = defaults.font) => {
 };
 
 const injectThemeStyle = options => {
-  const primaryColor = options.primaryColor || defaults.primary;
-  const secondaryColor = options.secondaryColor || defaults.secondary;
-
+  const { primaryColor = defaults.primary, secondaryColor = defaults.secondary } = options;
   document.getElementById('custom-theme-style')?.remove();
 
   const style = document.createElement('style');
@@ -131,38 +129,16 @@ const appManager = (() => {
   let exclusiveMode = false;
   let currentOverviewContainer = null;
 
-  const navigateTo = path => {
-    if (window.location.pathname === path) return;
-
-    window.history.pushState({}, '', path);
-    window.dispatchEvent(new CustomEvent('app-navigation', { detail: { path } }));
-    window.dispatchEvent(new PopStateEvent('popstate'));
-
-    // Handle overview route
-    if (path === '/overview') {
-      renderOverviewPage();
-    } else {
-      // Clean up overview page when navigating away
-      cleanupOverviewPage();
-    }
-  };
-
   const cleanupOverviewPage = () => {
     if (currentOverviewContainer) {
-      try {
-        ReactDOM.unmountComponentAtNode(currentOverviewContainer);
-        currentOverviewContainer.remove();
-        currentOverviewContainer = null;
-      } catch (error) {
-        console.error('Error cleaning up overview page:', error);
-      }
+      ReactDOM.unmountComponentAtNode(currentOverviewContainer);
+      currentOverviewContainer.remove();
+      currentOverviewContainer = null;
     }
   };
 
   const renderOverviewPage = () => {
-    // Clean up any existing overview first
     cleanupOverviewPage();
-
     setTimeout(() => {
       const container =
         document.querySelector('#content-container') ||
@@ -171,39 +147,31 @@ const appManager = (() => {
         document.body.querySelector('div[class*="content"]') ||
         document.querySelector('#root > div > div:last-child');
 
-      if (container) {
-        // Create new overview container without clearing existing content
-        const overviewDiv = document.createElement('div');
-        overviewDiv.id = 'overview-page';
-        overviewDiv.style.cssText = `
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background-color: #fff;
-          z-index: 1000;
-          padding: 20px;
-          overflow-y: auto;
-        `;
-
-        // Store reference for cleanup
-        currentOverviewContainer = overviewDiv;
-
-        // Append to container (don't replace content)
-        container.appendChild(overviewDiv);
-
-        // Render the overview component
-        try {
-          ReactDOM.render(<OverviewDemo />, overviewDiv);
-          console.log('Overview page rendered successfully');
-        } catch (error) {
-          console.error('Error rendering overview page:', error);
-        }
-      } else {
+      if (!container) {
         console.error('Could not find content container for overview page');
+        return;
       }
+
+      const overviewDiv = document.createElement('div');
+      Object.assign(overviewDiv, {
+        id: 'overview-page',
+        style: `
+          position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+          background-color: #fff; z-index: 1000; padding: 20px; overflow-y: auto;
+        `,
+      });
+      currentOverviewContainer = overviewDiv;
+      container.appendChild(overviewDiv);
+      ReactDOM.render(<OverviewDemo />, overviewDiv);
     }, 100);
+  };
+
+  const navigateTo = path => {
+    if (window.location.pathname === path) return;
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new CustomEvent('app-navigation', { detail: { path } }));
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    path === '/overview' ? renderOverviewPage() : cleanupOverviewPage();
   };
 
   const createMenuList = (items, drawer) => {
@@ -213,17 +181,17 @@ const appManager = (() => {
 
     items.forEach(item => {
       const listItem = document.createElement('li');
-      listItem.className = `MuiListItem-root ${
-        window.location.pathname === item.path ? 'Mui-selected' : ''
-      }`;
-      listItem.style.cssText = 'display: flex; align-items: center;';
+      Object.assign(listItem, {
+        className: `MuiListItem-root ${
+          window.location.pathname === item.path ? 'Mui-selected' : ''
+        }`,
+        style: 'display: flex; align-items: center;',
+      });
 
       if (item.icon) {
         const iconElement = document.createElement('span');
         iconElement.className = 'menu-item-icon';
-        const tempDiv = document.createElement('div');
-        ReactDOM.render(item.icon, tempDiv);
-        iconElement.appendChild(tempDiv.firstChild);
+        ReactDOM.render(item.icon, iconElement);
         listItem.appendChild(iconElement);
       }
 
@@ -235,36 +203,31 @@ const appManager = (() => {
       listItem.addEventListener('click', e => {
         e.preventDefault();
         e.stopPropagation();
-
-        // Update menu selection immediately
-        drawer.querySelectorAll('.custom-menu-list .MuiListItem-root').forEach(li => {
-          li.classList.remove('Mui-selected');
-        });
+        drawer
+          .querySelectorAll('.custom-menu-list .MuiListItem-root')
+          .forEach(li => li.classList.remove('Mui-selected'));
         listItem.classList.add('Mui-selected');
-
-        // Navigate to the path
         navigateTo(item.path);
       });
-
       menuList.appendChild(listItem);
     });
-
     drawer.insertBefore(menuList, drawer.firstChild);
-    return menuList;
   };
 
   const createLogoElement = (className, iconPath, text, title, onClick) => {
     const logoDiv = document.createElement('div');
-    logoDiv.className = `drawer-logo ${className}`;
-    logoDiv.title = title;
-    logoDiv.innerHTML = `
-      <div class="mui-icon">
-        <svg viewBox="0 0 24 24" width="32" height="32">
-          <path d="${iconPath}" fill="${defaults.primary}"/>
-        </svg>
-      </div>
-      <div class="logo-text">${text}</div>
-    `;
+    Object.assign(logoDiv, {
+      className: `drawer-logo ${className}`,
+      title,
+      innerHTML: `
+        <div class="mui-icon">
+          <svg viewBox="0 0 24 24" width="32" height="32">
+            <path d="${iconPath}" fill="${defaults.primary}"/>
+          </svg>
+        </div>
+        <div class="logo-text">${text}</div>
+      `,
+    });
     logoDiv.addEventListener('click', onClick);
     return logoDiv;
   };
@@ -295,10 +258,7 @@ const appManager = (() => {
     exclusiveMode = false;
     drawer.classList.remove('custom-menu-active', 'exclusive-menu-mode');
     drawer.querySelector('.custom-menu-list')?.remove();
-
-    // Clean up overview page when switching to default menu
     cleanupOverviewPage();
-
     document
       .querySelectorAll('.new-ui-logo, .kubernetes-logo')
       .forEach(el => el.classList.remove('active'));
@@ -319,7 +279,6 @@ const appManager = (() => {
       drawer.classList.add('custom-menu-active');
       createMenuList(k8sMenuItems, drawer);
     }
-
     document.querySelector('.kubernetes-logo')?.classList[isK8sActive ? 'remove' : 'add']('active');
     document.querySelector('.new-ui-logo')?.classList.remove('active');
   };
@@ -347,16 +306,14 @@ const appManager = (() => {
     logoLayout.className = 'logo-layout';
     logoContainer.appendChild(logoLayout);
 
-    logoLayout.appendChild(
+    logoLayout.append(
       createLogoElement(
         'new-ui-logo',
         'M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z',
         'Enbuild',
         'Show Only Custom UI',
         () => activateExclusiveNewUI(drawer)
-      )
-    );
-    logoLayout.appendChild(
+      ),
       createLogoElement(
         'home-logo',
         'M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z',
@@ -368,13 +325,12 @@ const appManager = (() => {
         }
       )
     );
-
     drawer.appendChild(logoContainer);
 
-    if (exclusiveMode) document.querySelector('.new-ui-logo')?.classList.add('active');
-    else if (activeMenuType === 'k8s')
-      document.querySelector('.kubernetes-logo')?.classList.add('active');
-
+    (exclusiveMode
+      ? document.querySelector('.new-ui-logo')
+      : document.querySelector('.kubernetes-logo')
+    )?.classList.add('active');
     return true;
   };
 
@@ -392,13 +348,7 @@ const appManager = (() => {
           'Mui-selected'
         );
       });
-
-      // Handle overview page on back/forward navigation
-      if (window.location.pathname === '/overview') {
-        renderOverviewPage();
-      } else {
-        cleanupOverviewPage();
-      }
+      window.location.pathname === '/overview' ? renderOverviewPage() : cleanupOverviewPage();
     });
   };
 
@@ -426,11 +376,7 @@ const appManager = (() => {
     );
 
     window.addEventListener('app-navigation', event => {
-      if (event.detail?.path === '/overview') {
-        renderOverviewPage();
-      } else {
-        cleanupOverviewPage();
-      }
+      event.detail?.path === '/overview' ? renderOverviewPage() : cleanupOverviewPage();
     });
 
     document.addEventListener('click', event => {
@@ -438,7 +384,7 @@ const appManager = (() => {
       const drawer = document.querySelector('.MuiDrawer-paper');
       if (!drawer) return;
 
-      if (target.closest('[title="New UI"]') || target.closest('.new-ui')) {
+      if (target.closest('[title="Show Only Custom UI"]') || target.closest('.new-ui-logo')) {
         activateExclusiveNewUI(drawer);
       } else if (target.closest('.home-logo')) {
         showDefaultMenu(drawer);
@@ -520,8 +466,8 @@ const ThemeCustomizer = () => {
   const applySettings = settings => {
     store.set(settings);
     injectThemeStyle(settings);
-    if (settings.font) loadFont(settings.font);
-    if (settings.logoURL) registerAppLogo(SimpleLogo);
+    settings.font && loadFont(settings.font);
+    settings.logoURL && registerAppLogo(SimpleLogo);
     appManager.injectDrawerIcons();
   };
 
@@ -532,7 +478,6 @@ const ThemeCustomizer = () => {
           UI Theme Customizer
         </Typography>
       </Box>
-
       <TextField
         type="color"
         label="Primary Color (Drawer Background, Header)"
@@ -553,7 +498,6 @@ const ThemeCustomizer = () => {
         margin="dense"
         InputLabelProps={{ shrink: true }}
       />
-
       <FormControl fullWidth margin="dense">
         <InputLabel id="font-select-label">Font Style</InputLabel>
         <Select
@@ -569,7 +513,6 @@ const ThemeCustomizer = () => {
           ))}
         </Select>
       </FormControl>
-
       <TextField
         label="Logo URL"
         value={logoURL}
@@ -580,7 +523,6 @@ const ThemeCustomizer = () => {
         InputLabelProps={{ shrink: true }}
         helperText="Enter a valid image URL for the logo (PNG recommended)"
       />
-
       <Box mt={2} display="flex" justifyContent="space-between" gap={2}>
         <Button
           onClick={() => applySettings({ primaryColor, secondaryColor, font, logoURL })}
@@ -609,8 +551,8 @@ const ThemeCustomizer = () => {
 (() => {
   const initialConfig = store.get() || {};
   injectThemeStyle(initialConfig);
-  if (initialConfig.font) loadFont(initialConfig.font);
-  if (initialConfig.logoURL) registerAppLogo(SimpleLogo);
+  initialConfig.font && loadFont(initialConfig.font);
+  initialConfig.logoURL && registerAppLogo(SimpleLogo);
 
   appManager.init();
   registerPluginSettings('enbuild-headlamp-theme', ThemeCustomizer, false);
