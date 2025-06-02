@@ -88,21 +88,65 @@ const injectThemeStyle = options => {
     .MuiButton-contained { background-color: ${primaryColor} !important; color: ${secondaryColor} !important; }
     .MuiButton-contained:hover { background-color: ${primaryColor}cc !important; }
     .MuiDrawer-paper { background-color: ${primaryColor} !important; }
-    .MuiDrawer-paper > .MuiListItem-root, .MuiDrawer-paper > .MuiListItem-root .MuiListItemText-primary, .MuiDrawer-paper .custom-menu-list .MuiListItem-root, .MuiDrawer-paper .custom-menu-list .MuiListItemText-primary { color: ${secondaryColor} !important; }
-    .MuiDrawer-paper > .MuiListItem-root:hover, .MuiDrawer-paper > .MuiListItem-root.Mui-selected, .MuiDrawer-paper .custom-menu-list .MuiListItem-root:hover, .MuiDrawer-paper .custom-menu-list .MuiListItem-root.Mui-selected { background-color: ${secondaryColor} !important; color: ${primaryColor} !important; }
-    .MuiDrawer-paper > .MuiListItem-root:hover .MuiListItemText-primary, .MuiDrawer-paper > .MuiListItem-root.Mui-selected .MuiListItemText-primary, .MuiDrawer-paper .custom-menu-list .MuiListItem-root:hover .MuiListItemText-primary, .MuiDrawer-paper .custom-menu-list .MuiListItem-root.Mui-selected .MuiListItemText-primary { color: ${primaryColor} !important; }
-    .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root { background-color: transparent !important; color: ${secondaryColor} !important; transition: color 0.3s, background-color 0.3s !important; }
-    .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root:hover, .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root.Mui-selected { background-color: ${secondaryColor} !important; color: ${primaryColor} !important; }
-    .MuiDrawer-paper .MuiListItemIcon, .MuiDrawer-paper .MuiSvgIcon-root { color: ${secondaryColor} !important; }
-    .MuiDrawer-paper > .MuiListItem-root:hover .MuiListItemIcon, .MuiDrawer-paper > .MuiListItem-root.Mui-selected .MuiListItemIcon, .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root:hover .MuiListItemIcon, .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root.Mui-selected .MuiListItemIcon { color: ${primaryColor} !important; }
+
+    /* Styles for ALL list items in the drawer (default and custom) */
+    .MuiDrawer-paper .MuiListItem-root,
+    .MuiDrawer-paper .MuiListItem-root .MuiListItemText-primary {
+      color: ${secondaryColor} !important; /* Ensure text is secondary color (white) by default */
+    }
+
+    /* Highlighted (Hover) and Selected styles for ALL list items in the drawer */
+    .MuiDrawer-paper .MuiListItem-root:hover,
+    .MuiDrawer-paper .MuiListItem-root.Mui-selected {
+      background-color: ${secondaryColor} !important; /* Secondary color background on hover/selected */
+    }
+
+    /* Text color for Highlighted (Hover) and Selected items */
+    .MuiDrawer-paper .MuiListItem-root:hover .MuiListItemText-primary,
+    .MuiDrawer-paper .MuiListItem-root.Mui-selected .MuiListItemText-primary {
+      color: ${primaryColor} !important; /* Primary color text on hover/selected */
+    }
+
+    /* Icon colors for ALL list items in the drawer */
+    .MuiDrawer-paper .MuiListItemIcon,
+    .MuiDrawer-paper .MuiSvgIcon-root {
+      color: ${secondaryColor} !important; /* Secondary color icons by default */
+    }
+
+    /* Icon color for Highlighted (Hover) and Selected items */
+    .MuiDrawer-paper .MuiListItem-root:hover .MuiListItemIcon,
+    .MuiDrawer-paper .MuiListItem-root.Mui-selected .MuiListItemIcon,
+    .MuiDrawer-paper .MuiListItem-root:hover .MuiSvgIcon-root,
+    .MuiDrawer-paper .MuiListItem-root.Mui-selected .MuiSvgIcon-root,
+    .MuiDrawer-paper .MuiListItem-root:hover .menu-item-icon svg,
+    .MuiDrawer-paper .MuiListItem-root.Mui-selected .menu-item-icon svg {
+      color: ${primaryColor} !important; /* Primary color icons on hover/selected */
+    }
+
+    /* Specific styles for collapsible submenu items using MuiListItemButton-root */
+    .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root {
+      background-color: transparent !important; /* Default background for collapsed items */
+      color: ${secondaryColor} !important; /* Default text color for collapsed items */
+      transition: color 0.3s, background-color 0.3s !important;
+    }
+    .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root:hover,
+    .MuiDrawer-paper .MuiCollapse-root .MuiListItemButton-root.Mui-selected {
+      background-color: ${secondaryColor} !important; /* Secondary color background for nested items on hover/selected */
+      color: ${primaryColor} !important; /* Primary color text for nested items on hover/selected */
+    }
+
     .MuiAppBar-root { background-color: ${primaryColor} !important; color: ${secondaryColor} !important; }
     .MuiAppBar-root *, .MuiAppBar-root input, .MuiAppBar-root input::placeholder, .MuiAppBar-root .MuiSvgIcon-root, .MuiAppBar-root .MuiIconButton-root, .MuiAppBar-root button, .MuiAppBar-root a { color: ${secondaryColor} !important; }
     .MuiAppBar-root input::placeholder { color: ${secondaryColor}99 !important; }
     .MuiAppBar-root .MuiInputBase-root, .MuiAppBar-root .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline, .MuiAppBar-root .MuiInput-underline:before, .MuiAppBar-root .MuiInput-underline:after, .MuiAppBar-root .MuiInput-underline:hover:not(.Mui-disabled):before, .MuiAppBar-root .MuiFilledInput-underline:before, .MuiAppBar-root .MuiFilledInput-underline:after, .MuiAppBar-root input[type="text"], .MuiAppBar-root input[type="search"], .MuiAppBar-root .MuiInput-root::before, .MuiAppBar-root .MuiInput-root::after { border-color: ${secondaryColor} !important; caret-color: ${secondaryColor} !important; }
+
+    /* Custom menu list specific styles - keep these if you want them distinct from default */
     .custom-menu-list { width: 100%; padding: 8px 0 !important; margin-top: 60px; }
     .custom-menu-list .MuiListItem-root { padding: 8px 16px; cursor: pointer; border-radius: 4px; margin: 2px 8px; transition: background-color 0.3s ease; }
-    .custom-menu-list .MuiListItem-root:hover { background-color: ${secondaryColor} !important; }
-    .custom-menu-list .MuiListItem-root:hover .MuiListItemText-primary { color: ${primaryColor} !important; }
+    /* The following two lines were adjusted above to apply to all list items for hover/selected */
+    /* .custom-menu-list .MuiListItem-root:hover { background-color: ${secondaryColor} !important; } */
+    /* .custom-menu-list .MuiListItem-root:hover .MuiListItemText-primary { color: ${primaryColor} !important; } */
+
     .drawer-logo-container { position: sticky !important; bottom: 0 !important; background-color: ${primaryColor} !important; border-top: 1px solid ${secondaryColor}33 !important; width: 100%; padding: 16px; margin-top: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1200; }
     .MuiDrawer-paper.custom-menu-active .default-nav-item { display: none !important; }
     .MuiDrawer-paper.exclusive-menu-mode .default-nav-item, .MuiDrawer-paper.exclusive-menu-mode > *:not(.custom-menu-list):not(.drawer-logo-container) { display: none !important; }
@@ -118,7 +162,8 @@ const injectThemeStyle = options => {
     .drawer-logo:hover .mui-icon { transform: scale(1.05); box-shadow: 0 0 5px rgba(255,255,255,0.3); }
     .drawer-logo.active .mui-icon { box-shadow: 0 0 8px rgba(255,255,255,0.5); border: 2px solid ${secondaryColor}; }
     .menu-item-icon { display: flex; align-items: center; margin-right: 12px; color: ${secondaryColor}; }
-    .MuiListItem-root:hover .menu-item-icon svg, .MuiListItem-root.Mui-selected .menu-item-icon svg { color: ${primaryColor} !important; }
+    /* The following line was adjusted above to apply to all list items for icon hover/selected */
+    /* .MuiListItem-root:hover .menu-item-icon svg, .MuiListItem-root.Mui-selected .menu-item-icon svg { color: ${primaryColor} !important; } */
   `;
   document.head.appendChild(style);
 };
