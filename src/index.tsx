@@ -1,4 +1,4 @@
-// EnBuild UI Plugin - Fixed Navigation Issues
+// EnBuild UI Plugin - Fixed Navigation Issues & Submenu Visibility
 import {
   AppLogoProps,
   ConfigStore,
@@ -45,7 +45,7 @@ const store = new ConfigStore('enbuild-customiser-theme');
 const loadFont = (fontName = DEFAULTS.font) => {
   ['custom-font-loader', 'custom-font-style'].forEach(id => document.getElementById(id)?.remove());
 
-  if (!['Times New Roman', 'Arial', 'Courier New', 'Georgia'].includes(fontName)) {
+  if (!['Times New Roman', 'Arial', 'Roboto', 'Courier New', 'Georgia'].includes(fontName)) {
     const link = Object.assign(document.createElement('link'), {
       id: 'custom-font-loader',
       rel: 'stylesheet',
@@ -72,15 +72,22 @@ const injectTheme = ({ primaryColor = DEFAULTS.primary, secondaryColor = DEFAULT
     innerHTML: `
       /* Core Theme */
       .MuiDrawer-paper { background-color: ${primaryColor} !important; }
-      .MuiAppBar-root { background-color: ${primaryColor} !important; color: ${secondaryColor} !important; }
+      .MuiAppBar-root { background-color: ${primaryColor} !important; }
       .MuiButton-contained { background-color: ${primaryColor} !important; color: ${secondaryColor} !important; }
       
-      /* Drawer Navigation */
+      /* Header Text - Ensure it's secondary color */
+      .MuiAppBar-root,
+      .MuiAppBar-root .MuiTypography-root, /* Target common text components in app bar */
+      .MuiAppBar-root .MuiButtonBase-root { /* Target buttons/icons in app bar */
+          color: ${secondaryColor} !important;
+      }
+
+      /* Drawer Navigation (Default Headlamp menus) */
       .MuiDrawer-paper .MuiListItem-root,
       .MuiDrawer-paper .MuiListItemText-primary,
       .MuiDrawer-paper .MuiListItemIcon-root { color: ${secondaryColor} !important; }
       
-      /* Hover States */
+      /* Hover States (Default Headlamp menus) */
       .MuiDrawer-paper .MuiListItem-root:hover,
       .MuiDrawer-paper .MuiListItem-root.Mui-selected {
         background-color: ${secondaryColor} !important;
@@ -93,11 +100,22 @@ const injectTheme = ({ primaryColor = DEFAULTS.primary, secondaryColor = DEFAULT
       .enbuild-menu .menu-item {
         padding: 8px 16px; margin: 2px 8px; border-radius: 4px;
         cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center;
+        color: ${secondaryColor} !important; /* Ensure unselected/unhovered text is secondary */
+      }
+      .enbuild-menu .menu-item *, /* Target icons and text inside menu-item */
+      .enbuild-menu .menu-item .MuiListItemIcon-root,
+      .enbuild-menu .menu-item .MuiListItemText-primary {
+          color: ${secondaryColor} !important; /* Explicitly set color for child elements */
       }
       .enbuild-menu .menu-item:hover { background-color: ${secondaryColor} !important; }
-      .enbuild-menu .menu-item:hover * { color: ${primaryColor} !important; }
+      .enbuild-menu .menu-item:hover *,
+      .enbuild-menu .menu-item:hover .MuiListItemIcon-root,
+      .enbuild-menu .menu-item:hover .MuiListItemText-primary { color: ${primaryColor} !important; }
+
       .enbuild-menu .menu-item.active { background-color: ${secondaryColor} !important; }
-      .enbuild-menu .menu-item.active * { color: ${primaryColor} !important; }
+      .enbuild-menu .menu-item.active *,
+      .enbuild-menu .menu-item.active .MuiListItemIcon-root,
+      .enbuild-menu .menu-item.active .MuiListItemText-primary { color: ${primaryColor} !important; }
       
       /* Logo Container */
       .enbuild-logo-container {
@@ -117,11 +135,10 @@ const injectTheme = ({ primaryColor = DEFAULTS.primary, secondaryColor = DEFAULT
       .enbuild-logo .text { margin-top: 8px; color: ${secondaryColor}; font-size: 12px; }
       .enbuild-logo.active .icon { box-shadow: 0 0 8px rgba(255,255,255,0.5); }
       
-      /* Hide/Show menus based on mode - FIXED */
-      .MuiDrawer-paper.enbuild-active .MuiListItem-root:not(.enbuild-item) { display: none !important; }
+      /* Hide/Show menus based on mode */
+      .enbuild-menu { display: none; }
+      .MuiDrawer-paper.enbuild-active .MuiListItem-root:not(.enbuild-item):not(.MuiListItemButton-root) { display: none !important; }
       .MuiDrawer-paper.enbuild-active .enbuild-menu { display: block !important; }
-      .MuiDrawer-paper:not(.enbuild-active) .enbuild-menu { display: none !important; }
-      .MuiDrawer-paper:not(.enbuild-active) .MuiListItem-root { display: flex !important; }
     `,
   });
   document.head.appendChild(style);
@@ -132,8 +149,8 @@ class NavigationManager {
   constructor() {
     this.activeMode = 'default';
     this.overviewContainer = null;
-    this.originalContent = null;
-    this.originalClickHandlers = new Map(); // Store original click handlers
+    // We no longer store originalContent or originalMenuItems this way.
+    // Headlamp manages its own content and menu items.
   }
 
   getContentContainer() {
@@ -145,44 +162,7 @@ class NavigationManager {
     );
   }
 
-  // Store original click handlers before overriding
-  storeOriginalHandlers() {
-    const defaultMenuItems = document.querySelectorAll(
-      '.MuiDrawer-paper .MuiListItem-root:not(.enbuild-item)'
-    );
-    defaultMenuItems.forEach((item, index) => {
-      if (!this.originalClickHandlers.has(index)) {
-        // Clone the node to preserve original event listeners
-        const clonedItem = item.cloneNode(true);
-        this.originalClickHandlers.set(index, clonedItem);
-      }
-    });
-  }
-
-  // Restore original click handlers
-  restoreOriginalHandlers() {
-    const defaultMenuItems = document.querySelectorAll(
-      '.MuiDrawer-paper .MuiListItem-root:not(.enbuild-item)'
-    );
-    defaultMenuItems.forEach((item, index) => {
-      if (this.originalClickHandlers.has(index)) {
-        const originalItem = this.originalClickHandlers.get(index);
-        // Replace the current item with the original one that has intact event listeners
-        item.parentNode.replaceChild(originalItem.cloneNode(true), item);
-      }
-    });
-  }
-
   navigateTo(path) {
-    // Only handle navigation when in custom mode
-    if (this.activeMode !== 'custom') {
-      console.log('Default mode active - letting Headlamp handle navigation');
-      return;
-    }
-
-    if (window.location.pathname === path) return;
-
-    // Only handle custom routes, let Headlamp handle everything else
     const customRoutes = [
       '/overview',
       '/pipelines',
@@ -193,31 +173,51 @@ class NavigationManager {
     ];
 
     if (customRoutes.includes(path)) {
+      // If navigating to a custom route, ensure custom UI is active
+      if (this.activeMode !== 'custom') {
+        this.showCustomUI(false); // Pass false to prevent immediate navigation if already on a custom route
+      }
+
+      if (window.location.pathname === path) {
+        // If already on the path, just ensure overview is rendered if it's the overview path
+        if (path === '/overview') {
+          this.renderOverview();
+        }
+        return;
+      }
+
       if (path === '/overview') {
         this.renderOverview();
       } else {
         this.cleanupOverview();
-        // For other custom routes, just update URL without interfering with content
-        window.history.pushState({ page: path }, '', path);
-        window.dispatchEvent(new PopStateEvent('popstate'));
+        // For other custom routes, just update URL
       }
+      window.history.pushState({ page: path }, '', path);
+      window.dispatchEvent(new PopStateEvent('popstate'));
     } else {
-      // For non-custom routes (like /settings), let Headlamp handle it
+      // If navigating to a default Headlamp route
       this.cleanupOverview();
-      console.log(`Letting Headlamp handle route: ${path}`);
+      this.showDefaultUI(false); // Pass false to prevent immediate navigation if already on a default route
+      window.history.pushState({ page: path }, '', path);
+      window.dispatchEvent(new PopStateEvent('popstate'));
     }
   }
 
   renderOverview() {
+    // Ensure this runs *after* the Headlamp content container is available
     setTimeout(() => {
       const container = this.getContentContainer();
-      if (!container) return;
-
-      if (!this.originalContent) {
-        this.originalContent = container.cloneNode(true);
+      if (!container) {
+        console.warn('Overview container not found.');
+        return;
       }
 
+      // Hide Headlamp's default content by clearing it.
+      // A better approach might be to leverage Headlamp's routing system to ensure
+      // it doesn't render its own content for '/overview'.
+      // For now, we'll clear it as in your original code.
       container.innerHTML = '';
+
       const overviewDiv = Object.assign(document.createElement('div'), {
         id: 'enbuild-overview',
         style: 'width: 100%; height: 100vh; background: #f8f9fa; overflow-y: auto;',
@@ -231,67 +231,71 @@ class NavigationManager {
 
   cleanupOverview() {
     if (this.overviewContainer) {
-      // Remove the overview content
       const overviewElement = document.getElementById('enbuild-overview');
       if (overviewElement) {
         ReactDOM.unmountComponentAtNode(overviewElement);
         overviewElement.remove();
       }
-
       this.overviewContainer = null;
-    }
 
-    // Don't restore original content when switching back to default mode
-    // Let Headlamp handle its own content management
-    if (this.activeMode === 'default') {
-      this.originalContent = null;
+      // When cleaning up overview, ensure Headlamp's content can be rendered again
+      // This is crucial. If you came from a custom path, and are switching to default,
+      // the popstate event handler for the default path should make Headlamp re-render.
     }
   }
 
-  showDefaultUI() {
+  showDefaultUI(navigateHome = true) {
     console.log('Switching to default UI mode');
     this.activeMode = 'default';
-    this.cleanupOverview();
+    this.cleanupOverview(); // Ensure any custom overview content is removed
 
     const drawer = document.querySelector('.MuiDrawer-paper');
     if (drawer) {
       // Remove custom mode class to show default menu
       drawer.classList.remove('enbuild-active');
 
-      // Restore original click handlers for default menu items
-      this.restoreOriginalHandlers();
+      // Do NOT try to restore original menu items. Just make sure Headlamp's
+      // own rendering mechanism is allowed to show them.
+      // We rely on the CSS `enbuild-active` to hide the custom menu and show default ones.
+
+      // Hide custom menu explicitly if it exists
+      const customMenu = drawer.querySelector('.enbuild-menu');
+      if (customMenu) {
+        customMenu.style.display = 'none';
+      }
 
       // Update logo states
       document.querySelectorAll('.enbuild-logo').forEach(el => el.classList.remove('active'));
       document.querySelector('.enbuild-logo.home')?.classList.add('active');
-    }
 
-    // Navigate to dashboard or current page - let Headlamp handle it naturally
-    // Don't force navigation, just let the user stay where they are
+      // IMPORTANT: Navigate to Headlamp's base path to reset its state if requested
+      if (navigateHome && window.location.pathname !== '/') {
+        window.history.pushState({}, '', '/');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }
+    }
     console.log('Switched to default UI mode - Headlamp controls navigation');
   }
 
-  showCustomUI() {
+  showCustomUI(navigateOverview = true) {
     console.log('Switching to custom UI mode');
     this.activeMode = 'custom';
 
     const drawer = document.querySelector('.MuiDrawer-paper');
     if (!drawer) return;
 
-    // Store original handlers before switching
-    this.storeOriginalHandlers();
+    // Headlamp's menu items will be hidden by the CSS when enbuild-active is applied.
+    // No need to store anything.
 
-    // Add custom mode class to hide default menu and show custom menu
+    this.createCustomMenu(drawer); // Ensure custom menu is created/updated
+
+    // Apply custom mode class to hide default menu and show custom menu
     drawer.classList.add('enbuild-active');
-
-    // Ensure custom menu exists
-    this.createCustomMenu(drawer);
 
     // Update logo states
     document.querySelectorAll('.enbuild-logo').forEach(el => el.classList.remove('active'));
     document.querySelector('.enbuild-logo.custom')?.classList.add('active');
 
-    // If we're not on a custom route, navigate to overview
     const customRoutes = [
       '/overview',
       '/pipelines',
@@ -300,8 +304,14 @@ class NavigationManager {
       '/deployment-flows',
       '/configuration',
     ];
-    if (!customRoutes.includes(window.location.pathname)) {
-      this.navigateTo('/overview');
+
+    // If we're not on a custom route, navigate to overview
+    if (navigateOverview) {
+      if (!customRoutes.includes(window.location.pathname)) {
+        this.navigateTo('/overview'); // This will trigger renderOverview if path is /overview
+      } else if (window.location.pathname === '/overview') {
+        this.renderOverview(); // Ensure overview is rendered if we are already on it.
+      }
     }
   }
 
@@ -329,7 +339,10 @@ class NavigationManager {
 
       // Render icon
       const iconContainer = menuItem.querySelector('span');
-      ReactDOM.render(item.icon, iconContainer);
+      if (iconContainer) {
+        // Ensure container exists before rendering
+        ReactDOM.render(item.icon, iconContainer);
+      }
 
       menuItem.addEventListener('click', e => {
         e.preventDefault();
@@ -345,8 +358,13 @@ class NavigationManager {
       menu.appendChild(menuItem);
     });
 
-    // Insert custom menu at the beginning of the drawer
-    drawer.insertBefore(menu, drawer.firstChild);
+    // Insert custom menu at the beginning of the drawer's scrollable content
+    const scrollContainer = drawer.querySelector('.MuiDrawer-paper > div:first-child');
+    if (scrollContainer) {
+      scrollContainer.prepend(menu); // Prepend to the first div inside the drawer paper
+    } else {
+      drawer.prepend(menu); // Fallback if scrollContainer is not found
+    }
   }
 
   setupDrawer() {
@@ -402,30 +420,32 @@ class NavigationManager {
         clearInterval(setupDrawerInterval);
         this.setupRouting();
 
-        // Initialize with default UI mode
-        this.showDefaultUI();
-      }
-    }, 1000);
+        // Check current path to decide which UI to show initially
+        const customRoutes = [
+          '/overview',
+          '/pipelines',
+          '/marketplace',
+          '/components',
+          '/deployment-flows',
+          '/configuration',
+        ];
 
-    // Handle initial route
-    if (window.location.pathname === '/overview') {
-      setTimeout(() => {
-        this.showCustomUI();
-        this.renderOverview();
-      }, 100);
-    }
+        if (customRoutes.includes(window.location.pathname)) {
+          this.showCustomUI(false); // Don't trigger another navigation on init
+          if (window.location.pathname === '/overview') {
+            this.renderOverview();
+          }
+        } else {
+          // If a default Headlamp route is loaded, ensure default UI is active
+          // No need to force navigate to '/' if already on a default route
+          this.showDefaultUI(false); // Don't trigger another navigation on init
+        }
+      }
+    }, 500); // Increased interval slightly to give Headlamp more time to render
   }
 
   setupRouting() {
-    // Store original popstate handlers
-    const originalPopstateHandlers = [];
-
     window.addEventListener('popstate', e => {
-      // Only handle routing when in custom mode
-      if (this.activeMode !== 'custom') {
-        return;
-      }
-
       const path = window.location.pathname;
       const customRoutes = [
         '/overview',
@@ -436,10 +456,14 @@ class NavigationManager {
         '/configuration',
       ];
 
-      // Only handle custom routes
       if (customRoutes.includes(path)) {
-        e.preventDefault();
-        e.stopPropagation();
+        // If a custom route is accessed directly or via history, ensure custom UI is active
+        if (this.activeMode !== 'custom') {
+          this.showCustomUI(false); // Switch UI without causing navigation loop
+        }
+
+        e.preventDefault(); // Prevent Headlamp from handling this popstate for custom routes
+        e.stopPropagation(); // Stop propagation to ensure Headlamp doesn't interfere
 
         if (path === '/overview') {
           this.renderOverview();
@@ -448,15 +472,19 @@ class NavigationManager {
         }
 
         // Update menu selection for custom menu items
-        document.querySelectorAll('.menu-item').forEach(item => {
-          const text = item.querySelector('span:last-child')?.textContent;
-          const menuItem = MENU_ITEMS.find(mi => mi.text === text);
-          item.classList.toggle('active', menuItem?.path === path);
+        document.querySelectorAll('.enbuild-menu .menu-item').forEach(item => {
+          const textElement = item.querySelector('span:last-child');
+          if (textElement) {
+            const text = textElement.textContent;
+            const menuItem = MENU_ITEMS.find(mi => mi.text === text);
+            item.classList.toggle('active', menuItem?.path === path);
+          }
         });
       } else {
         // For non-custom routes, clean up any custom content and switch to default mode
         this.cleanupOverview();
-        this.showDefaultUI();
+        this.showDefaultUI(false); // Switch UI without causing navigation loop
+        // Let Headlamp's own popstate handlers take over for its routes
       }
     });
   }
@@ -519,6 +547,8 @@ const ThemeCustomizer = () => {
     store.set(DEFAULTS);
     injectTheme(DEFAULTS);
     loadFont(DEFAULTS.font);
+    // Re-registering with default logo URL, if the original one was default
+    registerAppLogo(SimpleLogo);
   };
 
   return (
