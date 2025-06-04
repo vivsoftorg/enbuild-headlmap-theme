@@ -346,50 +346,102 @@ const appManager = (() => {
   let activeMenuType = 'default';
   let exclusiveMode = false;
   let currentOverviewContainer = null;
+  let originalContent = null;
 
   const cleanupOverviewPage = () => {
-    if (currentOverviewContainer) {
-      ReactDOM.unmountComponentAtNode(currentOverviewContainer);
-      currentOverviewContainer.remove();
+    if (currentOverviewContainer && originalContent) {
+      // Restore original content
+      const contentContainer = findContentContainer();
+      if (contentContainer) {
+        contentContainer.innerHTML = '';
+        contentContainer.appendChild(originalContent);
+      }
       currentOverviewContainer = null;
+      originalContent = null;
     }
   };
 
+  const findContentContainer = () => {
+    // Find the main content container more reliably
+    return (
+      document.querySelector('main[role="main"]') ||
+      document.querySelector('#content-container') ||
+      document.querySelector('[data-testid="main-content"]') ||
+      document.querySelector('.MuiContainer-root') ||
+      document.querySelector('#root > div > div:last-child') ||
+      document.querySelector('main') ||
+      document.body.querySelector('div[class*="content"]')
+    );
+  };
+
   const renderOverviewPage = () => {
-    cleanupOverviewPage();
     setTimeout(() => {
-      const container =
-        document.querySelector('#content-container') ||
-        document.querySelector('main') ||
-        document.querySelector('[role="main"]') ||
-        document.body.querySelector('div[class*="content"]') ||
-        document.querySelector('#root > div > div:last-child');
+      const container = findContentContainer();
 
       if (!container) {
         console.error('Could not find content container for overview page');
         return;
       }
 
+      // Store original content only if we haven't already
+      if (!originalContent) {
+        originalContent = container.cloneNode(true);
+      }
+
+      // Clear container and create overview wrapper
+      container.innerHTML = '';
+
       const overviewDiv = document.createElement('div');
       Object.assign(overviewDiv, {
         id: 'overview-page',
         style: `
-          position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-          background-color: #fff; z-index: 1000; padding: 20px; overflow-y: auto;
+          width: 100%; 
+          height: 100%; 
+          min-height: 100vh;
+          background-color: #f8f9fa; 
+          overflow-y: auto;
+          padding: 0;
+          margin: 0;
         `,
       });
+
       currentOverviewContainer = overviewDiv;
       container.appendChild(overviewDiv);
+
+      // Render the overview component
       ReactDOM.render(<OverviewDemo />, overviewDiv);
     }, 100);
   };
 
   const navigateTo = path => {
+    // Don't navigate if already on the same path
     if (window.location.pathname === path) return;
-    window.history.pushState({}, '', path);
-    window.dispatchEvent(new CustomEvent('app-navigation', { detail: { path } }));
+
+    // Use proper browser navigation
+    if (path === '/overview') {
+      window.history.pushState({ page: 'overview' }, 'Overview', path);
+      renderOverviewPage();
+    } else {
+      // For other paths, clean up overview and let default routing handle it
+      cleanupOverviewPage();
+      window.history.pushState({ page: 'default' }, '', path);
+
+      // Trigger navigation event for other parts of the app
+      window.dispatchEvent(new CustomEvent('app-navigation', { detail: { path } }));
+
+      // For dashboard, ensure we're showing default content
+      if (path === '/dashboard') {
+        // Force a page refresh to ensure clean state
+        setTimeout(() => {
+          if (window.location.pathname === '/dashboard') {
+            window.location.reload();
+          }
+        }, 100);
+      }
+    }
+
+    // Dispatch popstate for other listeners
     window.dispatchEvent(new PopStateEvent('popstate'));
-    path === '/overview' ? renderOverviewPage() : cleanupOverviewPage();
   };
 
   const createMenuList = (items, drawer) => {
@@ -421,10 +473,14 @@ const appManager = (() => {
       listItem.addEventListener('click', e => {
         e.preventDefault();
         e.stopPropagation();
+
+        // Update menu selection
         drawer
           .querySelectorAll('.custom-menu-list .MuiListItem-root')
           .forEach(li => li.classList.remove('Mui-selected'));
         listItem.classList.add('Mui-selected');
+
+        // Navigate to the path
         navigateTo(item.path);
       });
       menuList.appendChild(listItem);
@@ -553,20 +609,30 @@ const appManager = (() => {
   };
 
   const setupRouteListener = () => {
-    window.addEventListener('popstate', () => {
+    // Handle browser back/forward navigation
+    window.addEventListener('popstate', event => {
       const drawer = document.querySelector('.MuiDrawer-paper');
       if (!drawer) return;
 
+      const currentPath = window.location.pathname;
+
+      // Update menu selection based on current path
       drawer.querySelectorAll('.custom-menu-list .MuiListItem-root').forEach(item => {
         const textElement = item.querySelector('.MuiListItemText-primary');
         if (!textElement) return;
 
         const menuItem = k8sMenuItems.find(mi => mi.text === textElement.textContent);
-        item.classList[menuItem && menuItem.path === window.location.pathname ? 'add' : 'remove'](
+        item.classList[menuItem && menuItem.path === currentPath ? 'add' : 'remove'](
           'Mui-selected'
         );
       });
-      window.location.pathname === '/overview' ? renderOverviewPage() : cleanupOverviewPage();
+
+      // Handle overview page specifically
+      if (currentPath === '/overview') {
+        renderOverviewPage();
+      } else {
+        cleanupOverviewPage();
+      }
     });
   };
 
@@ -586,30 +652,41 @@ const appManager = (() => {
         injectDrawerIcons();
         setupRouteListener();
       }
-      if (window.location.pathname === '/overview') renderOverviewPage();
+      // Check if we should render overview on page load
+      if (window.location.pathname === '/overview') {
+        renderOverviewPage();
+      }
     };
 
-    ['DOMContentLoaded', 'load', 'popstate'].forEach(event =>
-      window.addEventListener(event, initHandler)
-    );
+    ['DOMContentLoaded', 'load'].forEach(event => window.addEventListener(event, initHandler));
 
+    // Handle custom navigation events
     window.addEventListener('app-navigation', event => {
-      event.detail?.path === '/overview' ? renderOverviewPage() : cleanupOverviewPage();
+      const path = event.detail?.path;
+      if (path === '/overview') {
+        renderOverviewPage();
+      } else {
+        cleanupOverviewPage();
+      }
     });
 
+    // Handle logo clicks
     document.addEventListener('click', event => {
       const target = event.target;
       const drawer = document.querySelector('.MuiDrawer-paper');
       if (!drawer) return;
 
       if (target.closest('[title="Show Only Custom UI"]') || target.closest('.new-ui-logo')) {
+        event.preventDefault();
         activateExclusiveNewUI(drawer);
       } else if (target.closest('.home-logo')) {
+        event.preventDefault();
         showDefaultMenu(drawer);
         navigateTo('/dashboard');
       }
     });
 
+    // Retry mechanism for drawer injection
     let attempts = 0;
     const retryInterval = setInterval(() => {
       if (
@@ -618,6 +695,9 @@ const appManager = (() => {
         injectDrawerIcons()
       ) {
         clearInterval(retryInterval);
+        if (window.location.pathname === '/overview') {
+          renderOverviewPage();
+        }
       }
       attempts++;
     }, 1000);
