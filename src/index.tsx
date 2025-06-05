@@ -59,8 +59,8 @@ const DeploymentFlowsPage = () => (
 
 // ========================= CONSTANTS & CONFIG =========================
 const DEFAULTS = {
-  primary: '#05A2C2',
-  secondary: '#ffffff',
+  primaryColor: '#05A2C2', // Changed to match state property names
+  secondaryColor: '#ffffff', // Changed to match state property names
   font: 'Inter',
   logoURL: 'https://enbuild-docs.vivplatform.io/images/emma/enbuild-logo.png',
 };
@@ -101,7 +101,10 @@ const loadFont = (fontName = DEFAULTS.font) => {
   document.head.appendChild(style);
 };
 
-const injectTheme = ({ primaryColor = DEFAULTS.primary, secondaryColor = DEFAULTS.secondary }) => {
+const injectTheme = ({
+  primaryColor = DEFAULTS.primaryColor,
+  secondaryColor = DEFAULTS.secondaryColor,
+}) => {
   document.getElementById('enbuild-theme')?.remove();
 
   const style = Object.assign(document.createElement('style'), {
@@ -112,33 +115,10 @@ const injectTheme = ({ primaryColor = DEFAULTS.primary, secondaryColor = DEFAULT
       .MuiAppBar-root { background-color: ${primaryColor} !important; }
       .MuiButton-contained { background-color: ${primaryColor} !important; color: ${secondaryColor} !important; }
       
-      /* Header - ALL elements should be secondary color */
+      /* Header Text - Ensure it's secondary color */
       .MuiAppBar-root,
-      .MuiAppBar-root *,
-      .MuiAppBar-root .MuiTypography-root,
-      .MuiAppBar-root .MuiButtonBase-root,
-      .MuiAppBar-root .MuiIconButton-root,
-      .MuiAppBar-root .MuiSvgIcon-root,
-      .MuiAppBar-root .MuiInputBase-root,
-      .MuiAppBar-root .MuiInputBase-input,
-      .MuiAppBar-root .MuiFormControl-root,
-      .MuiAppBar-root .MuiTextField-root,
-      .MuiAppBar-root .MuiOutlinedInput-root,
-      .MuiAppBar-root .MuiOutlinedInput-notchedOutline,
-      .MuiAppBar-root .MuiAutocomplete-root,
-      .MuiAppBar-root .MuiChip-root {
-          color: ${secondaryColor} !important;
-          border-color: ${secondaryColor} !important;
-      }
-      
-      /* Search bar specific styling */
-      .MuiAppBar-root .MuiTextField-root .MuiOutlinedInput-root {
-          color: ${secondaryColor} !important;
-      }
-      .MuiAppBar-root .MuiTextField-root .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
-          border-color: ${secondaryColor} !important;
-      }
-      .MuiAppBar-root .MuiTextField-root .MuiInputLabel-root {
+      .MuiAppBar-root .MuiTypography-root, /* Target common text components in app bar */
+      .MuiAppBar-root .MuiButtonBase-root { /* Target buttons/icons in app bar */
           color: ${secondaryColor} !important;
       }
 
@@ -147,59 +127,35 @@ const injectTheme = ({ primaryColor = DEFAULTS.primary, secondaryColor = DEFAULT
       .MuiDrawer-paper .MuiListItemText-primary,
       .MuiDrawer-paper .MuiListItemIcon-root { color: ${secondaryColor} !important; }
       
-      /* Default Headlamp menu hover states - prevent global hover */
-      .MuiDrawer-paper:not(.enbuild-active) .MuiListItem-root:hover,
-      .MuiDrawer-paper:not(.enbuild-active) .MuiListItem-root.Mui-selected {
+      /* Hover States (Default Headlamp menus) */
+      .MuiDrawer-paper .MuiListItem-root:hover,
+      .MuiDrawer-paper .MuiListItem-root.Mui-selected {
         background-color: ${secondaryColor} !important;
       }
-      .MuiDrawer-paper:not(.enbuild-active) .MuiListItem-root:hover *,
-      .MuiDrawer-paper:not(.enbuild-active) .MuiListItem-root.Mui-selected * { 
-        color: ${primaryColor} !important; 
-      }
+      .MuiDrawer-paper .MuiListItem-root:hover *,
+      .MuiDrawer-paper .MuiListItem-root.Mui-selected * { color: ${primaryColor} !important; }
       
-      /* Custom Menu Container */
-      .enbuild-menu-container { 
-        padding: 8px 0; 
-        margin-top: 60px; 
-        display: none; /* Hidden by default */
-      }
-      
-      /* Individual Custom Menu Items - specific targeting to prevent global hover */
+      /* Custom Menu */
+      .enbuild-menu-container { padding: 8px 0; margin-top: 60px; }
       .enbuild-menu-item {
-        padding: 8px 16px !important; 
-        margin: 2px 8px !important; 
-        border-radius: 4px !important;
-        cursor: pointer !important; 
-        transition: all 0.3s ease !important; 
-        display: flex !important; 
-        align-items: center !important;
-        color: ${secondaryColor} !important;
-        background-color: transparent !important;
+        padding: 8px 16px; margin: 2px 8px; border-radius: 4px;
+        cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center;
+        color: ${secondaryColor} !important; /* Ensure unselected/unhovered text is secondary */
       }
-      
-      /* Custom menu item children */
+      .enbuild-menu-item *, /* Target icons and text inside menu-item */
       .enbuild-menu-item .MuiListItemIcon-root,
       .enbuild-menu-item .MuiListItemText-primary {
-          color: ${secondaryColor} !important;
+          color: ${secondaryColor} !important; /* Explicitly set color for child elements */
       }
-      
-      /* Custom menu item hover - ONLY for enbuild items */
-      .enbuild-menu-item:hover {
-        background-color: ${secondaryColor} !important;
-      }
+      .enbuild-menu-item:hover { background-color: ${secondaryColor} !important; }
+      .enbuild-menu-item:hover *,
       .enbuild-menu-item:hover .MuiListItemIcon-root,
-      .enbuild-menu-item:hover .MuiListItemText-primary {
-        color: ${primaryColor} !important;
-      }
+      .enbuild-menu-item:hover .MuiListItemText-primary { color: ${primaryColor} !important; }
 
-      /* Custom menu active state */
-      .enbuild-menu-item.active {
-        background-color: ${secondaryColor} !important;
-      }
+      .enbuild-menu-item.active { background-color: ${secondaryColor} !important; }
+      .enbuild-menu-item.active *,
       .enbuild-menu-item.active .MuiListItemIcon-root,
-      .enbuild-menu-item.active .MuiListItemText-primary {
-        color: ${primaryColor} !important;
-      }
+      .enbuild-menu-item.active .MuiListItemText-primary { color: ${primaryColor} !important; }
       
       /* Logo Container */
       .enbuild-logo-container {
@@ -219,12 +175,49 @@ const injectTheme = ({ primaryColor = DEFAULTS.primary, secondaryColor = DEFAULT
       .enbuild-logo .text { margin-top: 8px; color: ${secondaryColor}; font-size: 12px; }
       .enbuild-logo.active .icon { box-shadow: 0 0 8px rgba(255,255,255,0.5); }
       
-      /* Show/Hide menus based on mode */
-      .MuiDrawer-paper.enbuild-active .MuiListItem-root:not(.enbuild-menu-item) { 
+      /* Hide/Show menus based on mode */
+      .enbuild-menu-container { display: none; }
+      /* Ensure that the default Headlamp menu items are hidden when enbuild-active is present */
+      .MuiDrawer-paper.enbuild-active .MuiListItem-root:not(.enbuild-menu-item):not(.MuiListItemButton-root) { 
         display: none !important; 
       }
       .MuiDrawer-paper.enbuild-active .enbuild-menu-container { 
         display: block !important; 
+      }
+
+      /* Styles for the ThemeCustomizer component itself when rendered by Headlamp's plugin settings */
+      .headlamp-plugin-settings #enbuild-custom-page,
+      .headlamp-plugin-settings .MuiBox-root[width="50%"] {
+        position: relative;
+        z-index: 1;
+        background-color: var(--lh-background-color, #f8f9fa);
+        min-height: 100vh; 
+        padding: 24px; 
+        box-sizing: border-box; 
+      }
+      .headlamp-plugin-settings .MuiInputLabel-root,
+      .headlamp-plugin-settings .MuiInputBase-input,
+      .headlamp-plugin-settings .MuiSelect-select,
+      .headlamp-plugin-settings .MuiFormHelperText-root {
+          color: var(--lh-text-primary-color, rgba(0, 0, 0, 0.87)) !important;
+      }
+      .headlamp-plugin-settings .MuiOutlinedInput-notchedOutline,
+      .headlamp-plugin-settings .MuiInput-underline:before {
+          border-color: var(--lh-text-primary-color, rgba(0, 0, 0, 0.23)) !important;
+      }
+      .headlamp-plugin-settings .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline,
+      .headlamp-plugin-settings .MuiInput-underline:hover:not(.Mui-disabled):before {
+          border-color: var(--lh-accent-color, ${DEFAULTS.primaryColor}) !important;
+      }
+      .headlamp-plugin-settings .Mui-focused .MuiOutlinedInput-notchedOutline,
+      .headlamp-plugin-settings .MuiInput-underline:after {
+          border-color: var(--lh-accent-color, ${DEFAULTS.primaryColor}) !important;
+      }
+      .MuiInputBase-input[type="color"] {
+        padding: 0 !important;
+        height: 40px !important;
+        width: 100% !important;
+        box-sizing: border-box;
       }
     `,
   });
@@ -236,7 +229,7 @@ class NavigationManager {
   constructor() {
     this.activeMode = 'default';
     this.customPageContainer = null;
-    this.customMenuContainer = null;
+    this.customMenuContainerRef = React.createRef();
   }
 
   getContentContainer() {
@@ -255,7 +248,6 @@ class NavigationManager {
       return;
     }
 
-    // Clear Headlamp's default content
     container.innerHTML = '';
 
     const customPageDiv = Object.assign(document.createElement('div'), {
@@ -284,7 +276,7 @@ class NavigationManager {
         ComponentToRender = DeploymentFlowsPage;
         break;
       case '/configuration':
-        ComponentToRender = ConfigurationPage;
+        ComponentToRender = ThemeCustomizer;
         break;
       default:
         console.warn(`No component defined for custom path: ${path}`);
@@ -320,30 +312,20 @@ class NavigationManager {
         this.showCustomUI(false);
       }
 
+      if (window.location.pathname === path) {
+        this.renderCustomPage(path);
+        this.renderCustomMenu();
+        return;
+      }
+
       this.renderCustomPage(path);
       window.history.pushState({ page: path }, '', path);
-
-      // Update menu active state
-      this.updateCustomMenuActiveState(path);
+      window.dispatchEvent(new PopStateEvent('popstate'));
     } else {
       this.cleanupCustomContent();
       this.showDefaultUI(false);
       window.history.pushState({ page: path }, '', path);
       window.dispatchEvent(new PopStateEvent('popstate'));
-    }
-  }
-
-  updateCustomMenuActiveState(currentPath) {
-    if (this.customMenuContainer) {
-      // Re-render the menu with updated active state
-      ReactDOM.render(
-        <CustomMenu
-          menuItems={MENU_ITEMS}
-          currentPath={currentPath}
-          navigateTo={this.navigateTo.bind(this)}
-        />,
-        this.customMenuContainer
-      );
     }
   }
 
@@ -356,37 +338,21 @@ class NavigationManager {
     if (drawer) {
       drawer.classList.remove('enbuild-active');
 
-      // Clean up custom menu
-      if (this.customMenuContainer) {
-        ReactDOM.unmountComponentAtNode(this.customMenuContainer);
-        this.customMenuContainer.remove();
-        this.customMenuContainer = null;
+      if (this.customMenuContainerRef.current) {
+        ReactDOM.unmountComponentAtNode(this.customMenuContainerRef.current);
+        this.customMenuContainerRef.current.remove();
+        this.customMenuContainerRef.current = null;
       }
 
       document.querySelectorAll('.enbuild-logo').forEach(el => el.classList.remove('active'));
       document.querySelector('.enbuild-logo.home')?.classList.add('active');
 
-      if (navigateHome) {
-        // Navigate to home but don't reload - let Headlamp handle it
-        if (window.location.pathname !== '/') {
-          window.history.pushState({}, '', '/');
-          // Trigger a refresh of the main content area to show Headlamp's default content
-          this.refreshDefaultContent();
-        }
+      if (navigateHome && window.location.pathname !== '/') {
+        window.history.pushState({}, '', '/');
+        window.dispatchEvent(new PopStateEvent('popstate'));
       }
     }
     console.log('Switched to default UI mode - Headlamp controls navigation');
-  }
-
-  refreshDefaultContent() {
-    // Force a re-render of the default Headlamp content
-    const event = new Event('headlamp-refresh');
-    window.dispatchEvent(event);
-
-    // Also try to trigger a route change event that Headlamp might be listening for
-    setTimeout(() => {
-      window.dispatchEvent(new PopStateEvent('popstate'));
-    }, 100);
   }
 
   showCustomUI(navigateOverview = true) {
@@ -394,12 +360,8 @@ class NavigationManager {
     this.activeMode = 'custom';
 
     const drawer = document.querySelector('.MuiDrawer-paper');
-    if (!drawer) {
-      console.warn('Drawer not found');
-      return;
-    }
+    if (!drawer) return;
 
-    // Create and render custom menu
     this.renderCustomMenu(drawer);
 
     drawer.classList.add('enbuild-active');
@@ -417,51 +379,41 @@ class NavigationManager {
     ];
 
     if (navigateOverview) {
-      const targetPath = customRoutes.includes(window.location.pathname)
-        ? window.location.pathname
-        : '/overview';
-
-      this.renderCustomPage(targetPath);
-
-      if (window.location.pathname !== targetPath) {
-        window.history.pushState({ page: targetPath }, '', targetPath);
+      if (!customRoutes.includes(window.location.pathname)) {
+        this.navigateTo('/overview');
+      } else {
+        this.renderCustomPage(window.location.pathname);
       }
-
-      this.updateCustomMenuActiveState(targetPath);
     }
   }
 
-  renderCustomMenu(drawer) {
-    if (!drawer) {
-      console.warn('Drawer not provided for custom menu rendering');
-      return;
+  renderCustomMenu(drawer = document.querySelector('.MuiDrawer-paper')) {
+    if (!drawer) return;
+
+    if (
+      !this.customMenuContainerRef.current ||
+      !drawer.contains(this.customMenuContainerRef.current)
+    ) {
+      const menuContainerDiv = Object.assign(document.createElement('div'), {
+        className: 'enbuild-menu-container',
+      });
+      this.customMenuContainerRef.current = menuContainerDiv;
+
+      const scrollContainer = drawer.querySelector('.MuiDrawer-paper > div:first-child');
+      if (scrollContainer) {
+        scrollContainer.prepend(menuContainerDiv);
+      } else {
+        drawer.prepend(menuContainerDiv);
+      }
     }
 
-    // Remove existing custom menu if present
-    if (this.customMenuContainer) {
-      ReactDOM.unmountComponentAtNode(this.customMenuContainer);
-      this.customMenuContainer.remove();
-    }
-
-    // Create new menu container
-    const menuContainerDiv = Object.assign(document.createElement('div'), {
-      className: 'enbuild-menu-container',
-    });
-
-    this.customMenuContainer = menuContainerDiv;
-
-    // Insert at the top of the drawer content
-    const scrollContainer = drawer.querySelector('.MuiDrawer-paper > div:first-child') || drawer;
-    scrollContainer.insertBefore(menuContainerDiv, scrollContainer.firstChild);
-
-    // Render the React component
     ReactDOM.render(
       <CustomMenu
         menuItems={MENU_ITEMS}
         currentPath={window.location.pathname}
         navigateTo={this.navigateTo.bind(this)}
       />,
-      this.customMenuContainer
+      this.customMenuContainerRef.current
     );
   }
 
@@ -475,7 +427,7 @@ class NavigationManager {
         <div class="enbuild-logo custom" title="EnBuild UI">
           <div class="icon">
             <svg viewBox="0 0 24 24" width="32" height="32">
-              <path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z" fill="${DEFAULTS.primary}"/>
+              <path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z" fill="${DEFAULTS.primaryColor}"/>
             </svg>
           </div>
           <div class="text">EnBuild</div>
@@ -483,7 +435,7 @@ class NavigationManager {
         <div class="enbuild-logo home active" title="Default UI">
           <div class="icon">
             <svg viewBox="0 0 24 24" width="32" height="32">
-              <path d="M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z" fill="${DEFAULTS.primary}"/>
+              <path d="M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z" fill="${DEFAULTS.primaryColor}"/>
             </svg>
           </div>
           <div class="text">Home</div>
@@ -495,14 +447,14 @@ class NavigationManager {
       e.preventDefault();
       e.stopPropagation();
       console.log('EnBuild logo clicked - switching to custom UI');
-      this.showCustomUI(true); // Navigate to overview by default
+      this.showCustomUI();
     });
 
     logoContainer.querySelector('.home').addEventListener('click', e => {
       e.preventDefault();
       e.stopPropagation();
       console.log('Home logo clicked - switching to default UI');
-      this.showDefaultUI(true);
+      this.showDefaultUI();
     });
 
     drawer.appendChild(logoContainer);
@@ -551,8 +503,11 @@ class NavigationManager {
           this.showCustomUI(false);
         }
 
+        e.preventDefault();
+        e.stopPropagation();
+
         this.renderCustomPage(path);
-        this.updateCustomMenuActiveState(path);
+        this.renderCustomMenu();
       } else {
         this.cleanupCustomContent();
         this.showDefaultUI(false);
@@ -561,7 +516,7 @@ class NavigationManager {
   }
 }
 
-// ========================= REACT COMPONENT FOR CUSTOM MENU =========================
+// ========================= NEW REACT COMPONENT FOR CUSTOM MENU =========================
 const CustomMenu = ({ menuItems, currentPath, navigateTo }) => {
   return (
     <Box className="enbuild-menu-container">
@@ -574,35 +529,13 @@ const CustomMenu = ({ menuItems, currentPath, navigateTo }) => {
             e.stopPropagation();
             navigateTo(item.path);
           }}
-          sx={{
-            padding: '8px 16px !important',
-            margin: '2px 8px !important',
-            borderRadius: '4px !important',
-            cursor: 'pointer',
-            '&:hover': {
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            },
-          }}
         >
           <ListItemIcon
-            sx={{
-              minWidth: 'auto',
-              mr: '12px',
-              display: 'flex',
-              alignItems: 'center',
-              color: 'inherit',
-            }}
+            sx={{ minWidth: 'auto', mr: '12px', display: 'flex', alignItems: 'center' }}
           >
             {item.icon}
           </ListItemIcon>
-          <ListItemText
-            primary={item.text}
-            sx={{
-              '& .MuiListItemText-primary': {
-                color: 'inherit',
-              },
-            }}
-          />
+          <ListItemText primary={item.text} />
         </ListItem>
       ))}
     </Box>
@@ -612,7 +545,7 @@ const CustomMenu = ({ menuItems, currentPath, navigateTo }) => {
 // ========================= COMPONENTS =========================
 export function SimpleLogo(props) {
   const { className = '' } = props;
-  const config = store.useConfig()(); // This hook ensures re-render when config changes
+  const config = store.useConfig()();
 
   if (!config?.logoURL) return null;
 
@@ -641,69 +574,52 @@ export function SimpleLogo(props) {
   );
 }
 
-// Configuration Page Component - Just shows heading like other pages
-const ConfigurationPage = () => (
-  <Box sx={{ p: 4, textAlign: 'center' }}>
-    <Typography variant="h4">Configuration Page</Typography>
-    <Typography variant="body1" mt={2}>
-      Content for Configuration goes here.
-    </Typography>
-  </Box>
-);
-
-// Theme Customizer - Only for Headlamp settings
 const ThemeCustomizer = () => {
-  const initialConfig = store.get() || {}; // Get initial config for state
-  const [settings, setSettings] = useState({
-    primaryColor: initialConfig.primaryColor || DEFAULTS.primary,
-    secondaryColor: initialConfig.secondaryColor || DEFAULTS.secondary,
-    font: initialConfig.font || DEFAULTS.font,
-    logoURL: initialConfig.logoURL || DEFAULTS.logoURL,
-  });
-
-  // Use a ref to store the current navigation manager instance
-  const navRef = useRef(null);
-  useEffect(() => {
-    // Make sure the global nav instance is available to ThemeCustomizer
-    navRef.current = window.enbuildNavigationManager; // Assuming you attach it to window in your init
-  }, []);
-
-  // This useEffect will run whenever `settings` change.
-  // It ensures the global theme and logo are updated.
-  useEffect(() => {
-    store.set(settings); // Persist changes to the store
-    injectTheme(settings);
-    loadFont(settings.font);
-
-    // Register the logo. Calling this again should force Headlamp to update
-    // if it's responsive to re-registrations.
-    registerAppLogo(SimpleLogo);
-
-    // If the custom menu is active, ensure its state is updated
-    if (navRef.current && navRef.current.activeMode === 'custom') {
-      navRef.current.updateCustomMenuActiveState(window.location.pathname);
-    }
-  }, [settings]); // Depend on settings so it re-runs when settings state updates
+  const config = store.get() || {};
+  const [settings, setSettings] = useState(() => ({
+    // Initialize state with default values if config is not available or properties are missing
+    primaryColor: config.primaryColor || DEFAULTS.primaryColor,
+    secondaryColor: config.secondaryColor || DEFAULTS.secondaryColor,
+    font: config.font || DEFAULTS.font,
+    logoURL: config.logoURL || DEFAULTS.logoURL,
+  }));
 
   const updateSetting = (key, value) => {
+    // Ensure that if value is empty/null, it defaults to the appropriate DEFAULTS value
     setSettings(prev => ({ ...prev, [key]: value || DEFAULTS[key] }));
   };
 
-  const resetSettings = () => {
-    setSettings({ ...DEFAULTS });
-    // The useEffect will handle applying these DEFAULTS as settings state changes
+  const applySettings = () => {
+    store.set(settings);
+    injectTheme(settings);
+    loadFont(settings.font);
+    registerAppLogo(SimpleLogo);
   };
+
+  const resetSettings = () => {
+    // Create a new object from DEFAULTS to ensure immutability and trigger state update
+    const newDefaults = { ...DEFAULTS };
+    setSettings(newDefaults); // This will cause a re-render of the component and its children
+    store.set(newDefaults); // Update the persistent store with default values
+    injectTheme(newDefaults); // Apply the theme to the main Headlamp UI
+    loadFont(newDefaults.font);
+    registerAppLogo(SimpleLogo);
+  };
+
+  useEffect(() => {
+    applySettings();
+  }, []);
 
   return (
     <Box width="50%" style={{ paddingTop: '8vh', margin: '0 auto' }}>
       <Typography variant="h6" align="center" mb={2}>
-        EnBuild UI Customizer
+        UI Theme Customizer
       </Typography>
 
       <TextField
         type="color"
-        label="Primary Color"
-        value={settings.primaryColor}
+        label="Primary Color (Drawer Background, Header)"
+        value={settings.primaryColor} // This value directly controls the color picker
         onChange={e => updateSetting('primaryColor', e.target.value)}
         fullWidth
         margin="dense"
@@ -712,8 +628,8 @@ const ThemeCustomizer = () => {
 
       <TextField
         type="color"
-        label="Secondary Color"
-        value={settings.secondaryColor}
+        label="Secondary Color (Text/Icon in Header & Drawer)"
+        value={settings.secondaryColor} // This value directly controls the color picker
         onChange={e => updateSetting('secondaryColor', e.target.value)}
         fullWidth
         margin="dense"
@@ -721,11 +637,11 @@ const ThemeCustomizer = () => {
       />
 
       <FormControl fullWidth margin="dense">
-        <InputLabel>Font</InputLabel>
+        <InputLabel>Font Style</InputLabel>
         <Select
           value={settings.font}
           onChange={e => updateSetting('font', e.target.value)}
-          label="Font"
+          label="Font Style"
         >
           {FONTS.map(font => (
             <MenuItem key={font} value={font} style={{ fontFamily: font }}>
@@ -742,16 +658,15 @@ const ThemeCustomizer = () => {
         fullWidth
         margin="dense"
         InputLabelProps={{ shrink: true }}
+        helperText="Enter a valid image URL (PNG recommended)"
       />
 
       <Box mt={2} display="flex" gap={2}>
-        <Button onClick={() => store.set(settings)} variant="contained">
-          {' '}
-          {/* Explicitly save on Apply */}
-          Apply
+        <Button onClick={applySettings} variant="contained" sx={{ flexGrow: 1 }}>
+          SAVE
         </Button>
-        <Button onClick={resetSettings} variant="outlined">
-          Reset
+        <Button onClick={resetSettings} variant="outlined" sx={{ flexGrow: 1 }}>
+          RESET
         </Button>
       </Box>
     </Box>
@@ -760,15 +675,15 @@ const ThemeCustomizer = () => {
 
 // ========================= INITIALIZATION =========================
 const nav = new NavigationManager();
-window.enbuildNavigationManager = nav; // Make it globally accessible for ThemeCustomizer
 
 // Initialize
 (() => {
   const config = store.get() || {};
   injectTheme(config);
   config.font && loadFont(config.font);
-  registerAppLogo(SimpleLogo); // Initial registration
+  config.logoURL && registerAppLogo(SimpleLogo);
 
   nav.init();
-  registerPluginSettings('enbuild-theme', ThemeCustomizer, false);
+  // Register the ThemeCustomizer as the plugin's settings component
+  registerPluginSettings('enbuild-headlamp-theme', ThemeCustomizer, false);
 })();
