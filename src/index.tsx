@@ -14,11 +14,48 @@ import {
   Select,
   TextField,
   Typography,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
 import { Cpu, GitBranchPlus, LayoutDashboard, LayoutList, Settings, Store } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import OverviewDemo from './pages/overview/overview';
+
+// Placeholder components for other custom routes
+const PipelinesPage = () => (
+  <Box sx={{ p: 4, textAlign: 'center' }}>
+    <Typography variant="h4">Pipelines Page</Typography>
+    <Typography variant="body1" mt={2}>
+      Content for Pipelines goes here.
+    </Typography>
+  </Box>
+);
+const MarketplacePage = () => (
+  <Box sx={{ p: 4, textAlign: 'center' }}>
+    <Typography variant="h4">Marketplace Page</Typography>
+    <Typography variant="body1" mt={2}>
+      Content for Marketplace goes here.
+    </Typography>
+  </Box>
+);
+const ComponentsPage = () => (
+  <Box sx={{ p: 4, textAlign: 'center' }}>
+    <Typography variant="h4">Components Page</Typography>
+    <Typography variant="body1" mt={2}>
+      Content for Components goes here.
+    </Typography>
+  </Box>
+);
+const DeploymentFlowsPage = () => (
+  <Box sx={{ p: 4, textAlign: 'center' }}>
+    <Typography variant="h4">Deployment Flows Page</Typography>
+    <Typography variant="body1" mt={2}>
+      Content for Deployment Flows goes here.
+    </Typography>
+  </Box>
+);
 
 // ========================= CONSTANTS & CONFIG =========================
 const DEFAULTS = {
@@ -75,10 +112,33 @@ const injectTheme = ({ primaryColor = DEFAULTS.primary, secondaryColor = DEFAULT
       .MuiAppBar-root { background-color: ${primaryColor} !important; }
       .MuiButton-contained { background-color: ${primaryColor} !important; color: ${secondaryColor} !important; }
       
-      /* Header Text - Ensure it's secondary color */
+      /* Header - ALL elements should be secondary color */
       .MuiAppBar-root,
-      .MuiAppBar-root .MuiTypography-root, /* Target common text components in app bar */
-      .MuiAppBar-root .MuiButtonBase-root { /* Target buttons/icons in app bar */
+      .MuiAppBar-root *,
+      .MuiAppBar-root .MuiTypography-root,
+      .MuiAppBar-root .MuiButtonBase-root,
+      .MuiAppBar-root .MuiIconButton-root,
+      .MuiAppBar-root .MuiSvgIcon-root,
+      .MuiAppBar-root .MuiInputBase-root,
+      .MuiAppBar-root .MuiInputBase-input,
+      .MuiAppBar-root .MuiFormControl-root,
+      .MuiAppBar-root .MuiTextField-root,
+      .MuiAppBar-root .MuiOutlinedInput-root,
+      .MuiAppBar-root .MuiOutlinedInput-notchedOutline,
+      .MuiAppBar-root .MuiAutocomplete-root,
+      .MuiAppBar-root .MuiChip-root {
+          color: ${secondaryColor} !important;
+          border-color: ${secondaryColor} !important;
+      }
+      
+      /* Search bar specific styling */
+      .MuiAppBar-root .MuiTextField-root .MuiOutlinedInput-root {
+          color: ${secondaryColor} !important;
+      }
+      .MuiAppBar-root .MuiTextField-root .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
+          border-color: ${secondaryColor} !important;
+      }
+      .MuiAppBar-root .MuiTextField-root .MuiInputLabel-root {
           color: ${secondaryColor} !important;
       }
 
@@ -87,35 +147,59 @@ const injectTheme = ({ primaryColor = DEFAULTS.primary, secondaryColor = DEFAULT
       .MuiDrawer-paper .MuiListItemText-primary,
       .MuiDrawer-paper .MuiListItemIcon-root { color: ${secondaryColor} !important; }
       
-      /* Hover States (Default Headlamp menus) */
-      .MuiDrawer-paper .MuiListItem-root:hover,
-      .MuiDrawer-paper .MuiListItem-root.Mui-selected {
+      /* Default Headlamp menu hover states - prevent global hover */
+      .MuiDrawer-paper:not(.enbuild-active) .MuiListItem-root:hover,
+      .MuiDrawer-paper:not(.enbuild-active) .MuiListItem-root.Mui-selected {
         background-color: ${secondaryColor} !important;
       }
-      .MuiDrawer-paper .MuiListItem-root:hover *,
-      .MuiDrawer-paper .MuiListItem-root.Mui-selected * { color: ${primaryColor} !important; }
+      .MuiDrawer-paper:not(.enbuild-active) .MuiListItem-root:hover *,
+      .MuiDrawer-paper:not(.enbuild-active) .MuiListItem-root.Mui-selected * { 
+        color: ${primaryColor} !important; 
+      }
       
-      /* Custom Menu */
-      .enbuild-menu { padding: 8px 0; margin-top: 60px; }
-      .enbuild-menu .menu-item {
-        padding: 8px 16px; margin: 2px 8px; border-radius: 4px;
-        cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center;
-        color: ${secondaryColor} !important; /* Ensure unselected/unhovered text is secondary */
+      /* Custom Menu Container */
+      .enbuild-menu-container { 
+        padding: 8px 0; 
+        margin-top: 60px; 
+        display: none; /* Hidden by default */
       }
-      .enbuild-menu .menu-item *, /* Target icons and text inside menu-item */
-      .enbuild-menu .menu-item .MuiListItemIcon-root,
-      .enbuild-menu .menu-item .MuiListItemText-primary {
-          color: ${secondaryColor} !important; /* Explicitly set color for child elements */
+      
+      /* Individual Custom Menu Items - specific targeting to prevent global hover */
+      .enbuild-menu-item {
+        padding: 8px 16px !important; 
+        margin: 2px 8px !important; 
+        border-radius: 4px !important;
+        cursor: pointer !important; 
+        transition: all 0.3s ease !important; 
+        display: flex !important; 
+        align-items: center !important;
+        color: ${secondaryColor} !important;
+        background-color: transparent !important;
       }
-      .enbuild-menu .menu-item:hover { background-color: ${secondaryColor} !important; }
-      .enbuild-menu .menu-item:hover *,
-      .enbuild-menu .menu-item:hover .MuiListItemIcon-root,
-      .enbuild-menu .menu-item:hover .MuiListItemText-primary { color: ${primaryColor} !important; }
+      
+      /* Custom menu item children */
+      .enbuild-menu-item .MuiListItemIcon-root,
+      .enbuild-menu-item .MuiListItemText-primary {
+          color: ${secondaryColor} !important;
+      }
+      
+      /* Custom menu item hover - ONLY for enbuild items */
+      .enbuild-menu-item:hover {
+        background-color: ${secondaryColor} !important;
+      }
+      .enbuild-menu-item:hover .MuiListItemIcon-root,
+      .enbuild-menu-item:hover .MuiListItemText-primary {
+        color: ${primaryColor} !important;
+      }
 
-      .enbuild-menu .menu-item.active { background-color: ${secondaryColor} !important; }
-      .enbuild-menu .menu-item.active *,
-      .enbuild-menu .menu-item.active .MuiListItemIcon-root,
-      .enbuild-menu .menu-item.active .MuiListItemText-primary { color: ${primaryColor} !important; }
+      /* Custom menu active state */
+      .enbuild-menu-item.active {
+        background-color: ${secondaryColor} !important;
+      }
+      .enbuild-menu-item.active .MuiListItemIcon-root,
+      .enbuild-menu-item.active .MuiListItemText-primary {
+        color: ${primaryColor} !important;
+      }
       
       /* Logo Container */
       .enbuild-logo-container {
@@ -135,10 +219,13 @@ const injectTheme = ({ primaryColor = DEFAULTS.primary, secondaryColor = DEFAULT
       .enbuild-logo .text { margin-top: 8px; color: ${secondaryColor}; font-size: 12px; }
       .enbuild-logo.active .icon { box-shadow: 0 0 8px rgba(255,255,255,0.5); }
       
-      /* Hide/Show menus based on mode */
-      .enbuild-menu { display: none; }
-      .MuiDrawer-paper.enbuild-active .MuiListItem-root:not(.enbuild-item):not(.MuiListItemButton-root) { display: none !important; }
-      .MuiDrawer-paper.enbuild-active .enbuild-menu { display: block !important; }
+      /* Show/Hide menus based on mode */
+      .MuiDrawer-paper.enbuild-active .MuiListItem-root:not(.enbuild-menu-item) { 
+        display: none !important; 
+      }
+      .MuiDrawer-paper.enbuild-active .enbuild-menu-container { 
+        display: block !important; 
+      }
     `,
   });
   document.head.appendChild(style);
@@ -148,9 +235,8 @@ const injectTheme = ({ primaryColor = DEFAULTS.primary, secondaryColor = DEFAULT
 class NavigationManager {
   constructor() {
     this.activeMode = 'default';
-    this.overviewContainer = null;
-    // We no longer store originalContent or originalMenuItems this way.
-    // Headlamp manages its own content and menu items.
+    this.customPageContainer = null;
+    this.customMenuContainer = null;
   }
 
   getContentContainer() {
@@ -160,6 +246,63 @@ class NavigationManager {
       document.querySelector('main') ||
       document.body.querySelector('div[class*="content"]')
     );
+  }
+
+  renderCustomPage(path) {
+    const container = this.getContentContainer();
+    if (!container) {
+      console.warn('Content container not found for rendering custom page.');
+      return;
+    }
+
+    // Clear Headlamp's default content
+    container.innerHTML = '';
+
+    const customPageDiv = Object.assign(document.createElement('div'), {
+      id: 'enbuild-custom-page',
+      style: 'width: 100%; height: 100vh; background: #f8f9fa; overflow-y: auto;',
+    });
+
+    this.customPageContainer = customPageDiv;
+    container.appendChild(customPageDiv);
+
+    let ComponentToRender;
+    switch (path) {
+      case '/overview':
+        ComponentToRender = OverviewDemo;
+        break;
+      case '/pipelines':
+        ComponentToRender = PipelinesPage;
+        break;
+      case '/marketplace':
+        ComponentToRender = MarketplacePage;
+        break;
+      case '/components':
+        ComponentToRender = ComponentsPage;
+        break;
+      case '/deployment-flows':
+        ComponentToRender = DeploymentFlowsPage;
+        break;
+      case '/configuration':
+        ComponentToRender = ConfigurationPage;
+        break;
+      default:
+        console.warn(`No component defined for custom path: ${path}`);
+        this.cleanupCustomContent();
+        return;
+    }
+    ReactDOM.render(<ComponentToRender />, customPageDiv);
+  }
+
+  cleanupCustomContent() {
+    if (this.customPageContainer) {
+      const customElement = document.getElementById('enbuild-custom-page');
+      if (customElement) {
+        ReactDOM.unmountComponentAtNode(customElement);
+        customElement.remove();
+      }
+      this.customPageContainer = null;
+    }
   }
 
   navigateTo(path) {
@@ -173,108 +316,77 @@ class NavigationManager {
     ];
 
     if (customRoutes.includes(path)) {
-      // If navigating to a custom route, ensure custom UI is active
       if (this.activeMode !== 'custom') {
-        this.showCustomUI(false); // Pass false to prevent immediate navigation if already on a custom route
+        this.showCustomUI(false);
       }
 
-      if (window.location.pathname === path) {
-        // If already on the path, just ensure overview is rendered if it's the overview path
-        if (path === '/overview') {
-          this.renderOverview();
-        }
-        return;
-      }
-
-      if (path === '/overview') {
-        this.renderOverview();
-      } else {
-        this.cleanupOverview();
-        // For other custom routes, just update URL
-      }
+      this.renderCustomPage(path);
       window.history.pushState({ page: path }, '', path);
-      window.dispatchEvent(new PopStateEvent('popstate'));
+
+      // Update menu active state
+      this.updateCustomMenuActiveState(path);
     } else {
-      // If navigating to a default Headlamp route
-      this.cleanupOverview();
-      this.showDefaultUI(false); // Pass false to prevent immediate navigation if already on a default route
+      this.cleanupCustomContent();
+      this.showDefaultUI(false);
       window.history.pushState({ page: path }, '', path);
       window.dispatchEvent(new PopStateEvent('popstate'));
     }
   }
 
-  renderOverview() {
-    // Ensure this runs *after* the Headlamp content container is available
-    setTimeout(() => {
-      const container = this.getContentContainer();
-      if (!container) {
-        console.warn('Overview container not found.');
-        return;
-      }
-
-      // Hide Headlamp's default content by clearing it.
-      // A better approach might be to leverage Headlamp's routing system to ensure
-      // it doesn't render its own content for '/overview'.
-      // For now, we'll clear it as in your original code.
-      container.innerHTML = '';
-
-      const overviewDiv = Object.assign(document.createElement('div'), {
-        id: 'enbuild-overview',
-        style: 'width: 100%; height: 100vh; background: #f8f9fa; overflow-y: auto;',
-      });
-
-      this.overviewContainer = overviewDiv;
-      container.appendChild(overviewDiv);
-      ReactDOM.render(<OverviewDemo />, overviewDiv);
-    }, 100);
-  }
-
-  cleanupOverview() {
-    if (this.overviewContainer) {
-      const overviewElement = document.getElementById('enbuild-overview');
-      if (overviewElement) {
-        ReactDOM.unmountComponentAtNode(overviewElement);
-        overviewElement.remove();
-      }
-      this.overviewContainer = null;
-
-      // When cleaning up overview, ensure Headlamp's content can be rendered again
-      // This is crucial. If you came from a custom path, and are switching to default,
-      // the popstate event handler for the default path should make Headlamp re-render.
+  updateCustomMenuActiveState(currentPath) {
+    if (this.customMenuContainer) {
+      // Re-render the menu with updated active state
+      ReactDOM.render(
+        <CustomMenu
+          menuItems={MENU_ITEMS}
+          currentPath={currentPath}
+          navigateTo={this.navigateTo.bind(this)}
+        />,
+        this.customMenuContainer
+      );
     }
   }
 
   showDefaultUI(navigateHome = true) {
     console.log('Switching to default UI mode');
     this.activeMode = 'default';
-    this.cleanupOverview(); // Ensure any custom overview content is removed
+    this.cleanupCustomContent();
 
     const drawer = document.querySelector('.MuiDrawer-paper');
     if (drawer) {
-      // Remove custom mode class to show default menu
       drawer.classList.remove('enbuild-active');
 
-      // Do NOT try to restore original menu items. Just make sure Headlamp's
-      // own rendering mechanism is allowed to show them.
-      // We rely on the CSS `enbuild-active` to hide the custom menu and show default ones.
-
-      // Hide custom menu explicitly if it exists
-      const customMenu = drawer.querySelector('.enbuild-menu');
-      if (customMenu) {
-        customMenu.style.display = 'none';
+      // Clean up custom menu
+      if (this.customMenuContainer) {
+        ReactDOM.unmountComponentAtNode(this.customMenuContainer);
+        this.customMenuContainer.remove();
+        this.customMenuContainer = null;
       }
 
-      // Update logo states
       document.querySelectorAll('.enbuild-logo').forEach(el => el.classList.remove('active'));
       document.querySelector('.enbuild-logo.home')?.classList.add('active');
 
-      // IMPORTANT: Navigate to Headlamp's base path to reset its state if requested
-      if (navigateHome && window.location.pathname !== '/') {
-        window.history.pushState({}, '', '/');
-        window.dispatchEvent(new PopStateEvent('popstate'));
+      if (navigateHome) {
+        // Navigate to home but don't reload - let Headlamp handle it
+        if (window.location.pathname !== '/') {
+          window.history.pushState({}, '', '/');
+          // Trigger a refresh of the main content area to show Headlamp's default content
+          this.refreshDefaultContent();
+        }
       }
     }
     console.log('Switched to default UI mode - Headlamp controls navigation');
+  }
+
+  refreshDefaultContent() {
+    // Force a re-render of the default Headlamp content
+    const event = new Event('headlamp-refresh');
+    window.dispatchEvent(event);
+
+    // Also try to trigger a route change event that Headlamp might be listening for
+    setTimeout(() => {
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }, 100);
   }
 
   showCustomUI(navigateOverview = true) {
@@ -282,17 +394,16 @@ class NavigationManager {
     this.activeMode = 'custom';
 
     const drawer = document.querySelector('.MuiDrawer-paper');
-    if (!drawer) return;
+    if (!drawer) {
+      console.warn('Drawer not found');
+      return;
+    }
 
-    // Headlamp's menu items will be hidden by the CSS when enbuild-active is applied.
-    // No need to store anything.
+    // Create and render custom menu
+    this.renderCustomMenu(drawer);
 
-    this.createCustomMenu(drawer); // Ensure custom menu is created/updated
-
-    // Apply custom mode class to hide default menu and show custom menu
     drawer.classList.add('enbuild-active');
 
-    // Update logo states
     document.querySelectorAll('.enbuild-logo').forEach(el => el.classList.remove('active'));
     document.querySelector('.enbuild-logo.custom')?.classList.add('active');
 
@@ -305,73 +416,59 @@ class NavigationManager {
       '/configuration',
     ];
 
-    // If we're not on a custom route, navigate to overview
     if (navigateOverview) {
-      if (!customRoutes.includes(window.location.pathname)) {
-        this.navigateTo('/overview'); // This will trigger renderOverview if path is /overview
-      } else if (window.location.pathname === '/overview') {
-        this.renderOverview(); // Ensure overview is rendered if we are already on it.
+      const targetPath = customRoutes.includes(window.location.pathname)
+        ? window.location.pathname
+        : '/overview';
+
+      this.renderCustomPage(targetPath);
+
+      if (window.location.pathname !== targetPath) {
+        window.history.pushState({ page: targetPath }, '', targetPath);
       }
+
+      this.updateCustomMenuActiveState(targetPath);
     }
   }
 
-  createCustomMenu(drawer) {
-    // Remove existing custom menu if it exists
-    const existingMenu = drawer.querySelector('.enbuild-menu');
-    if (existingMenu) {
-      existingMenu.remove();
+  renderCustomMenu(drawer) {
+    if (!drawer) {
+      console.warn('Drawer not provided for custom menu rendering');
+      return;
     }
 
-    const menu = Object.assign(document.createElement('div'), {
-      className: 'enbuild-menu',
-    });
-
-    MENU_ITEMS.forEach(item => {
-      const menuItem = Object.assign(document.createElement('div'), {
-        className: `menu-item enbuild-item ${
-          window.location.pathname === item.path ? 'active' : ''
-        }`,
-        innerHTML: `
-          <span style="margin-right: 12px; display: flex; align-items: center;"></span>
-          <span>${item.text}</span>
-        `,
-      });
-
-      // Render icon
-      const iconContainer = menuItem.querySelector('span');
-      if (iconContainer) {
-        // Ensure container exists before rendering
-        ReactDOM.render(item.icon, iconContainer);
-      }
-
-      menuItem.addEventListener('click', e => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        drawer.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
-        menuItem.classList.add('active');
-
-        // Handle navigation through our custom navigation system
-        this.navigateTo(item.path);
-      });
-
-      menu.appendChild(menuItem);
-    });
-
-    // Insert custom menu at the beginning of the drawer's scrollable content
-    const scrollContainer = drawer.querySelector('.MuiDrawer-paper > div:first-child');
-    if (scrollContainer) {
-      scrollContainer.prepend(menu); // Prepend to the first div inside the drawer paper
-    } else {
-      drawer.prepend(menu); // Fallback if scrollContainer is not found
+    // Remove existing custom menu if present
+    if (this.customMenuContainer) {
+      ReactDOM.unmountComponentAtNode(this.customMenuContainer);
+      this.customMenuContainer.remove();
     }
+
+    // Create new menu container
+    const menuContainerDiv = Object.assign(document.createElement('div'), {
+      className: 'enbuild-menu-container',
+    });
+
+    this.customMenuContainer = menuContainerDiv;
+
+    // Insert at the top of the drawer content
+    const scrollContainer = drawer.querySelector('.MuiDrawer-paper > div:first-child') || drawer;
+    scrollContainer.insertBefore(menuContainerDiv, scrollContainer.firstChild);
+
+    // Render the React component
+    ReactDOM.render(
+      <CustomMenu
+        menuItems={MENU_ITEMS}
+        currentPath={window.location.pathname}
+        navigateTo={this.navigateTo.bind(this)}
+      />,
+      this.customMenuContainer
+    );
   }
 
   setupDrawer() {
     const drawer = document.querySelector('.MuiDrawer-paper');
     if (!drawer || drawer.querySelector('.enbuild-logo-container')) return false;
 
-    // Create logo container
     const logoContainer = Object.assign(document.createElement('div'), {
       className: 'enbuild-logo-container',
       innerHTML: `
@@ -394,19 +491,18 @@ class NavigationManager {
       `,
     });
 
-    // Add event listeners
     logoContainer.querySelector('.custom').addEventListener('click', e => {
       e.preventDefault();
       e.stopPropagation();
       console.log('EnBuild logo clicked - switching to custom UI');
-      this.showCustomUI();
+      this.showCustomUI(true); // Navigate to overview by default
     });
 
     logoContainer.querySelector('.home').addEventListener('click', e => {
       e.preventDefault();
       e.stopPropagation();
       console.log('Home logo clicked - switching to default UI');
-      this.showDefaultUI();
+      this.showDefaultUI(true);
     });
 
     drawer.appendChild(logoContainer);
@@ -414,13 +510,11 @@ class NavigationManager {
   }
 
   init() {
-    // Setup drawer
     const setupDrawerInterval = setInterval(() => {
       if (this.setupDrawer()) {
         clearInterval(setupDrawerInterval);
         this.setupRouting();
 
-        // Check current path to decide which UI to show initially
         const customRoutes = [
           '/overview',
           '/pipelines',
@@ -431,17 +525,13 @@ class NavigationManager {
         ];
 
         if (customRoutes.includes(window.location.pathname)) {
-          this.showCustomUI(false); // Don't trigger another navigation on init
-          if (window.location.pathname === '/overview') {
-            this.renderOverview();
-          }
+          this.showCustomUI(false);
+          this.renderCustomPage(window.location.pathname);
         } else {
-          // If a default Headlamp route is loaded, ensure default UI is active
-          // No need to force navigate to '/' if already on a default route
-          this.showDefaultUI(false); // Don't trigger another navigation on init
+          this.showDefaultUI(false);
         }
       }
-    }, 500); // Increased interval slightly to give Headlamp more time to render
+    }, 500);
   }
 
   setupRouting() {
@@ -457,43 +547,72 @@ class NavigationManager {
       ];
 
       if (customRoutes.includes(path)) {
-        // If a custom route is accessed directly or via history, ensure custom UI is active
         if (this.activeMode !== 'custom') {
-          this.showCustomUI(false); // Switch UI without causing navigation loop
+          this.showCustomUI(false);
         }
 
-        e.preventDefault(); // Prevent Headlamp from handling this popstate for custom routes
-        e.stopPropagation(); // Stop propagation to ensure Headlamp doesn't interfere
-
-        if (path === '/overview') {
-          this.renderOverview();
-        } else {
-          this.cleanupOverview();
-        }
-
-        // Update menu selection for custom menu items
-        document.querySelectorAll('.enbuild-menu .menu-item').forEach(item => {
-          const textElement = item.querySelector('span:last-child');
-          if (textElement) {
-            const text = textElement.textContent;
-            const menuItem = MENU_ITEMS.find(mi => mi.text === text);
-            item.classList.toggle('active', menuItem?.path === path);
-          }
-        });
+        this.renderCustomPage(path);
+        this.updateCustomMenuActiveState(path);
       } else {
-        // For non-custom routes, clean up any custom content and switch to default mode
-        this.cleanupOverview();
-        this.showDefaultUI(false); // Switch UI without causing navigation loop
-        // Let Headlamp's own popstate handlers take over for its routes
+        this.cleanupCustomContent();
+        this.showDefaultUI(false);
       }
     });
   }
 }
 
+// ========================= REACT COMPONENT FOR CUSTOM MENU =========================
+const CustomMenu = ({ menuItems, currentPath, navigateTo }) => {
+  return (
+    <Box className="enbuild-menu-container">
+      {menuItems.map(item => (
+        <ListItem
+          key={item.path}
+          className={`enbuild-menu-item ${currentPath === item.path ? 'active' : ''}`}
+          onClick={e => {
+            e.preventDefault();
+            e.stopPropagation();
+            navigateTo(item.path);
+          }}
+          sx={{
+            padding: '8px 16px !important',
+            margin: '2px 8px !important',
+            borderRadius: '4px !important',
+            cursor: 'pointer',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            },
+          }}
+        >
+          <ListItemIcon
+            sx={{
+              minWidth: 'auto',
+              mr: '12px',
+              display: 'flex',
+              alignItems: 'center',
+              color: 'inherit',
+            }}
+          >
+            {item.icon}
+          </ListItemIcon>
+          <ListItemText
+            primary={item.text}
+            sx={{
+              '& .MuiListItemText-primary': {
+                color: 'inherit',
+              },
+            }}
+          />
+        </ListItem>
+      ))}
+    </Box>
+  );
+};
+
 // ========================= COMPONENTS =========================
 export function SimpleLogo(props) {
   const { className = '' } = props;
-  const config = store.useConfig()();
+  const config = store.useConfig()(); // This hook ensures re-render when config changes
 
   if (!config?.logoURL) return null;
 
@@ -522,37 +641,61 @@ export function SimpleLogo(props) {
   );
 }
 
+// Configuration Page Component - Just shows heading like other pages
+const ConfigurationPage = () => (
+  <Box sx={{ p: 4, textAlign: 'center' }}>
+    <Typography variant="h4">Configuration Page</Typography>
+    <Typography variant="body1" mt={2}>
+      Content for Configuration goes here.
+    </Typography>
+  </Box>
+);
+
+// Theme Customizer - Only for Headlamp settings
 const ThemeCustomizer = () => {
-  const config = store.get() || {};
+  const initialConfig = store.get() || {}; // Get initial config for state
   const [settings, setSettings] = useState({
-    primaryColor: config.primaryColor || DEFAULTS.primary,
-    secondaryColor: config.secondaryColor || DEFAULTS.secondary,
-    font: config.font || DEFAULTS.font,
-    logoURL: config.logoURL || DEFAULTS.logoURL,
+    primaryColor: initialConfig.primaryColor || DEFAULTS.primary,
+    secondaryColor: initialConfig.secondaryColor || DEFAULTS.secondary,
+    font: initialConfig.font || DEFAULTS.font,
+    logoURL: initialConfig.logoURL || DEFAULTS.logoURL,
   });
+
+  // Use a ref to store the current navigation manager instance
+  const navRef = useRef(null);
+  useEffect(() => {
+    // Make sure the global nav instance is available to ThemeCustomizer
+    navRef.current = window.enbuildNavigationManager; // Assuming you attach it to window in your init
+  }, []);
+
+  // This useEffect will run whenever `settings` change.
+  // It ensures the global theme and logo are updated.
+  useEffect(() => {
+    store.set(settings); // Persist changes to the store
+    injectTheme(settings);
+    loadFont(settings.font);
+
+    // Register the logo. Calling this again should force Headlamp to update
+    // if it's responsive to re-registrations.
+    registerAppLogo(SimpleLogo);
+
+    // If the custom menu is active, ensure its state is updated
+    if (navRef.current && navRef.current.activeMode === 'custom') {
+      navRef.current.updateCustomMenuActiveState(window.location.pathname);
+    }
+  }, [settings]); // Depend on settings so it re-runs when settings state updates
 
   const updateSetting = (key, value) => {
     setSettings(prev => ({ ...prev, [key]: value || DEFAULTS[key] }));
   };
 
-  const applySettings = () => {
-    store.set(settings);
-    injectTheme(settings);
-    loadFont(settings.font);
-    registerAppLogo(SimpleLogo);
-  };
-
   const resetSettings = () => {
     setSettings({ ...DEFAULTS });
-    store.set(DEFAULTS);
-    injectTheme(DEFAULTS);
-    loadFont(DEFAULTS.font);
-    // Re-registering with default logo URL, if the original one was default
-    registerAppLogo(SimpleLogo);
+    // The useEffect will handle applying these DEFAULTS as settings state changes
   };
 
   return (
-    <Box width="50%" style={{ paddingTop: '8vh' }}>
+    <Box width="50%" style={{ paddingTop: '8vh', margin: '0 auto' }}>
       <Typography variant="h6" align="center" mb={2}>
         EnBuild UI Customizer
       </Typography>
@@ -602,7 +745,9 @@ const ThemeCustomizer = () => {
       />
 
       <Box mt={2} display="flex" gap={2}>
-        <Button onClick={applySettings} variant="contained">
+        <Button onClick={() => store.set(settings)} variant="contained">
+          {' '}
+          {/* Explicitly save on Apply */}
           Apply
         </Button>
         <Button onClick={resetSettings} variant="outlined">
@@ -615,13 +760,14 @@ const ThemeCustomizer = () => {
 
 // ========================= INITIALIZATION =========================
 const nav = new NavigationManager();
+window.enbuildNavigationManager = nav; // Make it globally accessible for ThemeCustomizer
 
 // Initialize
 (() => {
   const config = store.get() || {};
   injectTheme(config);
   config.font && loadFont(config.font);
-  config.logoURL && registerAppLogo(SimpleLogo);
+  registerAppLogo(SimpleLogo); // Initial registration
 
   nav.init();
   registerPluginSettings('enbuild-theme', ThemeCustomizer, false);
