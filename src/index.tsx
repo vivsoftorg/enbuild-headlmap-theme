@@ -207,14 +207,14 @@ const injectTheme = ({
         border-top: 1px solid ${secondaryColor}33; padding: 16px;
         display: flex;
         justify-content: center;
-        /* Default for expanded state (side-by-side) */
-        flex-direction: row;
+        /* Changed to column for labels below logos */
+        flex-direction: row; /* Changed to row for initial flex-direction */
         gap: 16px; 
       }
       .enbuild-logo {
         display: flex; 
-        flex-direction: row; /* Default to row for wider drawer */
-        align-items: center; 
+        flex-direction: column; /* Changed to column */
+        align-items: center; /* Center items horizontally in a column */
         cursor: pointer; transition: all 0.2s ease;
       }
       .enbuild-logo:hover { opacity: 0.8; transform: scale(1.05); }
@@ -222,31 +222,39 @@ const injectTheme = ({
         width: 40px; height: 40px; background: white; border-radius: 4px;
         display: flex; align-items: center; justify-content: center; padding: 4px;
       }
-      .enbuild-logo .text { margin-left: 8px; color: ${secondaryColor}; font-size: 12px; }
+      .enbuild-logo .text { 
+        margin-top: 4px; /* Add margin to separate text from icon */
+        margin-left: 0; /* Remove left margin */
+        color: ${secondaryColor}; font-size: 12px; 
+      }
       .enbuild-logo.active .icon { box-shadow: 0 0 8px rgba(255,255,255,0.5); }
 
-      /* When drawer collapses (narrow width), stack icons vertically */
-      .MuiDrawer-paper[style*="width: 56px"] .enbuild-logo-container, /* Common collapsed width */
-      .MuiDrawer-paper[style*="width: 48px"] .enbuild-logo-container, /* Another common collapsed width */
+      /* When drawer collapses (narrow width), adjust layout */
+      .MuiDrawer-paper[style*="width: 56px"] .enbuild-logo-container,
+      .MuiDrawer-paper[style*="width: 48px"] .enbuild-logo-container,
       .MuiDrawer-paper.MuiDrawer-paperAnchorLeft:not(.MuiDrawer-docked):not([style*="width:"]) .enbuild-logo-container {
-          flex-direction: column !important;
+          flex-direction: row !important; /* Keep as row when collapsed for horizontal arrangement of the two logos */
           align-items: center !important;
-          gap: 10px !important; /* Vertical gap for stacked icons */
+          gap: 10px !important; 
+          flex-wrap: wrap; /* Allow wrapping if space is too small */
       }
 
       .MuiDrawer-paper[style*="width: 56px"] .enbuild-logo,
       .MuiDrawer-paper[style*="width: 48px"] .enbuild-logo,
       .MuiDrawer-paper.MuiDrawer-paperAnchorLeft:not(.MuiDrawer-docked):not([style*="width:"]) .enbuild-logo {
-          flex-direction: column !important; /* Stack icon and text within each logo item */
+          flex-direction: column !important; /* Ensure column direction even when collapsed for icon above text */
           align-items: center !important;
+          justify-content: center !important; /* Center content within each logo item */
+          margin: 0 !important; /* Remove any conflicting margins */
       }
 
       .MuiDrawer-paper[style*="width: 56px"] .enbuild-logo .text,
       .MuiDrawer-paper[style*="width: 48px"] .enbuild-logo .text,
       .MuiDrawer-paper.MuiDrawer-paperAnchorLeft:not(.MuiDrawer-docked):not([style*="width:"]) .enbuild-logo .text {
-          margin-top: 4px; /* Smaller margin for stacked text */
-          margin-left: 0 !important; /* Remove horizontal margin for stacked text */
+          margin-top: 4px !important; /* Keep top margin for stacked text */
+          margin-left: 0 !important; /* Remove horizontal margin */
           font-size: 10px; /* Smaller font size for collapsed state */
+          white-space: nowrap; /* Prevent text wrapping */
       }
 
       /* Hide/Show menus based on mode */
