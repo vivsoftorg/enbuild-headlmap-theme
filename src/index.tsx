@@ -57,6 +57,16 @@ const DeploymentFlowsPage = () => (
   </Box>
 );
 
+// New placeholder component for the /configuration route in the custom menu
+const ConfigurationPagePlaceholder = () => (
+  <Box sx={{ p: 4, textAlign: 'center' }}>
+    <Typography variant="h4">Configuration Overview</Typography>
+    <Typography variant="body1" mt={2}>
+      Access full theme settings via Plugin Settings.
+    </Typography>
+  </Box>
+);
+
 // ========================= CONSTANTS & CONFIG =========================
 const DEFAULTS = {
   primaryColor: '#05A2C2', // Changed to match state property names
@@ -67,13 +77,14 @@ const DEFAULTS = {
 
 const FONTS = ['Inter', 'Arial', 'Roboto', 'Courier New', 'Georgia', 'Monospace', 'Verdana'];
 
+// Re-added 'Configuration' to MENU_ITEMS
 const MENU_ITEMS = [
   { text: 'Overview', path: '/overview', icon: <LayoutDashboard size={20} /> },
   { text: 'Pipelines', path: '/pipelines', icon: <LayoutList size={20} /> },
   { text: 'Marketplace', path: '/marketplace', icon: <Store size={20} /> },
   { text: 'Components', path: '/components', icon: <Cpu size={20} /> },
   { text: 'Deployment Flows', path: '/deployment-flows', icon: <GitBranchPlus size={20} /> },
-  { text: 'Configuration', path: '/configuration', icon: <Settings size={20} /> },
+  { text: 'Configuration', path: '/configuration', icon: <Settings size={20} /> }, // Added back
 ];
 
 const store = new ConfigStore('enbuild-customiser-theme');
@@ -114,19 +125,52 @@ const injectTheme = ({
       .MuiDrawer-paper { background-color: ${primaryColor} !important; }
       .MuiAppBar-root { background-color: ${primaryColor} !important; }
       .MuiButton-contained { background-color: ${primaryColor} !important; color: ${secondaryColor} !important; }
-      
-      /* Header Text - Ensure it's secondary color */
+
+      /* Header Text, Icons, and Inputs - Ensure they are secondary color */
       .MuiAppBar-root,
-      .MuiAppBar-root .MuiTypography-root, /* Target common text components in app bar */
-      .MuiAppBar-root .MuiButtonBase-root { /* Target buttons/icons in app bar */
+      .MuiAppBar-root *, /* Catch all elements within AppBar that might not be explicitly covered */
+      .MuiAppBar-root .MuiTypography-root,
+      .MuiAppBar-root .MuiButtonBase-root,
+      .MuiAppBar-root input[type="search"],
+      .MuiAppBar-root input::placeholder,
+      .MuiAppBar-root .MuiInputBase-input {
           color: ${secondaryColor} !important;
       }
+      /* Ensure SVG icons within AppBar also get the secondary color */
+      .MuiAppBar-root svg,
+      .MuiAppBar-root svg path {
+          fill: ${secondaryColor} !important;
+          color: ${secondaryColor} !important; /* Fallback for direct color properties */
+      }
+      /* Specific targeting for search bar text */
+      .MuiAppBar-root .MuiInputBase-root {
+          color: ${secondaryColor} !important;
+      }
+      /* Ensure search input background remains transparent or default */
+      .MuiAppBar-root input[type="search"] {
+          background-color: transparent !important;
+      }
+
+      /* Search bar outline and focus styles */
+      .MuiAppBar-root .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline,
+      .MuiAppBar-root .MuiInput-underline:before {
+        border-color: ${secondaryColor} !important;
+      }
+      .MuiAppBar-root .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline,
+      .MuiAppBar-root .MuiInput-underline:hover:not(.Mui-disabled):before {
+        border-color: ${secondaryColor} !important;
+      }
+      .MuiAppBar-root .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline,
+      .MuiAppBar-root .MuiInput-underline:after {
+        border-color: ${secondaryColor} !important;
+      }
+
 
       /* Drawer Navigation (Default Headlamp menus) */
       .MuiDrawer-paper .MuiListItem-root,
       .MuiDrawer-paper .MuiListItemText-primary,
       .MuiDrawer-paper .MuiListItemIcon-root { color: ${secondaryColor} !important; }
-      
+
       /* Hover States (Default Headlamp menus) */
       .MuiDrawer-paper .MuiListItem-root:hover,
       .MuiDrawer-paper .MuiListItem-root.Mui-selected {
@@ -134,7 +178,7 @@ const injectTheme = ({
       }
       .MuiDrawer-paper .MuiListItem-root:hover *,
       .MuiDrawer-paper .MuiListItem-root.Mui-selected * { color: ${primaryColor} !important; }
-      
+
       /* Custom Menu */
       .enbuild-menu-container { padding: 8px 0; margin-top: 60px; }
       .enbuild-menu-item {
@@ -156,15 +200,21 @@ const injectTheme = ({
       .enbuild-menu-item.active *,
       .enbuild-menu-item.active .MuiListItemIcon-root,
       .enbuild-menu-item.active .MuiListItemText-primary { color: ${primaryColor} !important; }
-      
+
       /* Logo Container */
       .enbuild-logo-container {
         position: sticky; bottom: 0; background-color: ${primaryColor};
         border-top: 1px solid ${secondaryColor}33; padding: 16px;
-        display: flex; justify-content: center; gap: 16px;
+        display: flex;
+        justify-content: center;
+        /* Default for expanded state (side-by-side) */
+        flex-direction: row;
+        gap: 16px; 
       }
       .enbuild-logo {
-        display: flex; flex-direction: column; align-items: center;
+        display: flex; 
+        flex-direction: row; /* Default to row for wider drawer */
+        align-items: center; 
         cursor: pointer; transition: all 0.2s ease;
       }
       .enbuild-logo:hover { opacity: 0.8; transform: scale(1.05); }
@@ -172,17 +222,41 @@ const injectTheme = ({
         width: 40px; height: 40px; background: white; border-radius: 4px;
         display: flex; align-items: center; justify-content: center; padding: 4px;
       }
-      .enbuild-logo .text { margin-top: 8px; color: ${secondaryColor}; font-size: 12px; }
+      .enbuild-logo .text { margin-left: 8px; color: ${secondaryColor}; font-size: 12px; }
       .enbuild-logo.active .icon { box-shadow: 0 0 8px rgba(255,255,255,0.5); }
-      
+
+      /* When drawer collapses (narrow width), stack icons vertically */
+      .MuiDrawer-paper[style*="width: 56px"] .enbuild-logo-container, /* Common collapsed width */
+      .MuiDrawer-paper[style*="width: 48px"] .enbuild-logo-container, /* Another common collapsed width */
+      .MuiDrawer-paper.MuiDrawer-paperAnchorLeft:not(.MuiDrawer-docked):not([style*="width:"]) .enbuild-logo-container {
+          flex-direction: column !important;
+          align-items: center !important;
+          gap: 10px !important; /* Vertical gap for stacked icons */
+      }
+
+      .MuiDrawer-paper[style*="width: 56px"] .enbuild-logo,
+      .MuiDrawer-paper[style*="width: 48px"] .enbuild-logo,
+      .MuiDrawer-paper.MuiDrawer-paperAnchorLeft:not(.MuiDrawer-docked):not([style*="width:"]) .enbuild-logo {
+          flex-direction: column !important; /* Stack icon and text within each logo item */
+          align-items: center !important;
+      }
+
+      .MuiDrawer-paper[style*="width: 56px"] .enbuild-logo .text,
+      .MuiDrawer-paper[style*="width: 48px"] .enbuild-logo .text,
+      .MuiDrawer-paper.MuiDrawer-paperAnchorLeft:not(.MuiDrawer-docked):not([style*="width:"]) .enbuild-logo .text {
+          margin-top: 4px; /* Smaller margin for stacked text */
+          margin-left: 0 !important; /* Remove horizontal margin for stacked text */
+          font-size: 10px; /* Smaller font size for collapsed state */
+      }
+
       /* Hide/Show menus based on mode */
       .enbuild-menu-container { display: none; }
       /* Ensure that the default Headlamp menu items are hidden when enbuild-active is present */
-      .MuiDrawer-paper.enbuild-active .MuiListItem-root:not(.enbuild-menu-item):not(.MuiListItemButton-root) { 
-        display: none !important; 
+      .MuiDrawer-paper.enbuild-active .MuiListItem-root:not(.enbuild-menu-item):not(.MuiListItemButton-root) {
+        display: none !important;
       }
-      .MuiDrawer-paper.enbuild-active .enbuild-menu-container { 
-        display: block !important; 
+      .MuiDrawer-paper.enbuild-active .enbuild-menu-container {
+        display: block !important;
       }
 
       /* Styles for the ThemeCustomizer component itself when rendered by Headlamp's plugin settings */
@@ -191,9 +265,9 @@ const injectTheme = ({
         position: relative;
         z-index: 1;
         background-color: var(--lh-background-color, #f8f9fa);
-        min-height: 100vh; 
-        padding: 24px; 
-        box-sizing: border-box; 
+        min-height: 100vh;
+        padding: 24px;
+        box-sizing: border-box;
       }
       .headlamp-plugin-settings .MuiInputLabel-root,
       .headlamp-plugin-settings .MuiInputBase-input,
@@ -275,8 +349,8 @@ class NavigationManager {
       case '/deployment-flows':
         ComponentToRender = DeploymentFlowsPage;
         break;
-      case '/configuration':
-        ComponentToRender = ThemeCustomizer;
+      case '/configuration': // Route to the placeholder for the custom menu
+        ComponentToRender = ConfigurationPagePlaceholder;
         break;
       default:
         console.warn(`No component defined for custom path: ${path}`);
@@ -304,7 +378,7 @@ class NavigationManager {
       '/marketplace',
       '/components',
       '/deployment-flows',
-      '/configuration',
+      '/configuration', // Included here for routing logic
     ];
 
     if (customRoutes.includes(path)) {
@@ -375,7 +449,7 @@ class NavigationManager {
       '/marketplace',
       '/components',
       '/deployment-flows',
-      '/configuration',
+      '/configuration', // Included here for UI state management
     ];
 
     if (navigateOverview) {
@@ -473,7 +547,7 @@ class NavigationManager {
           '/marketplace',
           '/components',
           '/deployment-flows',
-          '/configuration',
+          '/configuration', // Included here for initial routing check
         ];
 
         if (customRoutes.includes(window.location.pathname)) {
@@ -495,7 +569,7 @@ class NavigationManager {
         '/marketplace',
         '/components',
         '/deployment-flows',
-        '/configuration',
+        '/configuration', // Included here for popstate handling
       ];
 
       if (customRoutes.includes(path)) {
@@ -577,7 +651,6 @@ export function SimpleLogo(props) {
 const ThemeCustomizer = () => {
   const config = store.get() || {};
   const [settings, setSettings] = useState(() => ({
-    // Initialize state with default values if config is not available or properties are missing
     primaryColor: config.primaryColor || DEFAULTS.primaryColor,
     secondaryColor: config.secondaryColor || DEFAULTS.secondaryColor,
     font: config.font || DEFAULTS.font,
@@ -585,8 +658,19 @@ const ThemeCustomizer = () => {
   }));
 
   const updateSetting = (key, value) => {
-    // Ensure that if value is empty/null, it defaults to the appropriate DEFAULTS value
-    setSettings(prev => ({ ...prev, [key]: value || DEFAULTS[key] }));
+    // Ensure that if value is empty/null for color inputs, it defaults to the appropriate DEFAULTS color
+    // For color inputs, an empty string or invalid value can sometimes default to black.
+    // So, we'll make sure it's always a valid hex color.
+    let newValue = value;
+    if (key === 'primaryColor' && (!value || !/^#([0-9A-F]{3}){1,2}$/i.test(value))) {
+      newValue = DEFAULTS.primaryColor;
+    } else if (key === 'secondaryColor' && (!value || !/^#([0-9A-F]{3}){1,2}$/i.test(value))) {
+      newValue = DEFAULTS.secondaryColor;
+    } else if (!value && DEFAULTS.hasOwnProperty(key)) {
+      // For other fields like logoURL if they can be empty
+      newValue = DEFAULTS[key];
+    }
+    setSettings(prev => ({ ...prev, [key]: newValue }));
   };
 
   const applySettings = () => {
@@ -597,11 +681,10 @@ const ThemeCustomizer = () => {
   };
 
   const resetSettings = () => {
-    // Create a new object from DEFAULTS to ensure immutability and trigger state update
-    const newDefaults = { ...DEFAULTS };
-    setSettings(newDefaults); // This will cause a re-render of the component and its children
-    store.set(newDefaults); // Update the persistent store with default values
-    injectTheme(newDefaults); // Apply the theme to the main Headlamp UI
+    const newDefaults = { ...DEFAULTS }; // Create a fresh copy
+    setSettings(newDefaults); // Update component state
+    store.set(newDefaults); // Update persistent store
+    injectTheme(newDefaults); // Apply to the main UI
     loadFont(newDefaults.font);
     registerAppLogo(SimpleLogo);
   };
@@ -619,7 +702,7 @@ const ThemeCustomizer = () => {
       <TextField
         type="color"
         label="Primary Color (Drawer Background, Header)"
-        value={settings.primaryColor} // This value directly controls the color picker
+        value={settings.primaryColor}
         onChange={e => updateSetting('primaryColor', e.target.value)}
         fullWidth
         margin="dense"
@@ -629,7 +712,7 @@ const ThemeCustomizer = () => {
       <TextField
         type="color"
         label="Secondary Color (Text/Icon in Header & Drawer)"
-        value={settings.secondaryColor} // This value directly controls the color picker
+        value={settings.secondaryColor}
         onChange={e => updateSetting('secondaryColor', e.target.value)}
         fullWidth
         margin="dense"
