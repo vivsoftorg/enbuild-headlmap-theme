@@ -126,9 +126,9 @@ const injectTheme = ({
       .MuiAppBar-root { background-color: ${primaryColor} !important; }
       .MuiButton-contained { background-color: ${primaryColor} !important; color: ${secondaryColor} !important; }
 
-      /* Header Text, Icons, and Inputs - Ensure they are secondary color */
+      /* Header Text, Icons, and Inputs */
       .MuiAppBar-root,
-      .MuiAppBar-root *, /* Catch all elements within AppBar that might not be explicitly covered */
+      .MuiAppBar-root *,
       .MuiAppBar-root .MuiTypography-root,
       .MuiAppBar-root .MuiButtonBase-root,
       .MuiAppBar-root input[type="search"],
@@ -136,22 +136,18 @@ const injectTheme = ({
       .MuiAppBar-root .MuiInputBase-input {
           color: ${secondaryColor} !important;
       }
-      /* Ensure SVG icons within AppBar also get the secondary color */
       .MuiAppBar-root svg,
       .MuiAppBar-root svg path {
           fill: ${secondaryColor} !important;
-          color: ${secondaryColor} !important; /* Fallback for direct color properties */
+          color: ${secondaryColor} !important;
       }
-      /* Specific targeting for search bar text */
       .MuiAppBar-root .MuiInputBase-root {
           color: ${secondaryColor} !important;
       }
-      /* Ensure search input background remains transparent or default */
       .MuiAppBar-root input[type="search"] {
           background-color: transparent !important;
       }
 
-      /* Search bar outline and focus styles */
       .MuiAppBar-root .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline,
       .MuiAppBar-root .MuiInput-underline:before {
         border-color: ${secondaryColor} !important;
@@ -165,31 +161,32 @@ const injectTheme = ({
         border-color: ${secondaryColor} !important;
       }
 
-
       /* Drawer Navigation (Default Headlamp menus) */
       .MuiDrawer-paper .MuiListItem-root,
       .MuiDrawer-paper .MuiListItemText-primary,
       .MuiDrawer-paper .MuiListItemIcon-root { color: ${secondaryColor} !important; }
 
-      /* Hover States (Default Headlamp menus) */
+      /* Hover/Selected States - Submenu Styling Update */
       .MuiDrawer-paper .MuiListItem-root:hover,
       .MuiDrawer-paper .MuiListItem-root.Mui-selected {
-        background-color: ${secondaryColor} !important;
+        background-color: ${primaryColor} !important;
       }
       .MuiDrawer-paper .MuiListItem-root:hover *,
-      .MuiDrawer-paper .MuiListItem-root.Mui-selected * { color: ${primaryColor} !important; }
+      .MuiDrawer-paper .MuiListItem-root.Mui-selected * {
+        color: ${secondaryColor} !important;
+      }
 
       /* Custom Menu */
       .enbuild-menu-container { padding: 8px 0; margin-top: 60px; }
       .enbuild-menu-item {
         padding: 8px 16px; margin: 2px 8px; border-radius: 4px;
         cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center;
-        color: ${secondaryColor} !important; /* Ensure unselected/unhovered text is secondary */
+        color: ${secondaryColor} !important;
       }
-      .enbuild-menu-item *, /* Target icons and text inside menu-item */
+      .enbuild-menu-item *,
       .enbuild-menu-item .MuiListItemIcon-root,
       .enbuild-menu-item .MuiListItemText-primary {
-          color: ${secondaryColor} !important; /* Explicitly set color for child elements */
+          color: ${secondaryColor} !important;
       }
       .enbuild-menu-item:hover { background-color: ${secondaryColor} !important; }
       .enbuild-menu-item:hover *,
@@ -207,14 +204,13 @@ const injectTheme = ({
         border-top: 1px solid ${secondaryColor}33; padding: 16px;
         display: flex;
         justify-content: center;
-        /* Changed to column for labels below logos */
-        flex-direction: row; /* Changed to row for initial flex-direction */
-        gap: 16px; 
+        flex-direction: row;
+        gap: 16px;
       }
       .enbuild-logo {
-        display: flex; 
-        flex-direction: column; /* Changed to column */
-        align-items: center; /* Center items horizontally in a column */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         cursor: pointer; transition: all 0.2s ease;
       }
       .enbuild-logo:hover { opacity: 0.8; transform: scale(1.05); }
@@ -222,44 +218,42 @@ const injectTheme = ({
         width: 40px; height: 40px; background: white; border-radius: 4px;
         display: flex; align-items: center; justify-content: center; padding: 4px;
       }
-      .enbuild-logo .text { 
-        margin-top: 4px; /* Add margin to separate text from icon */
-        margin-left: 0; /* Remove left margin */
-        color: ${secondaryColor}; font-size: 12px; 
+      .enbuild-logo .text {
+        margin-top: 4px;
+        margin-left: 0;
+        color: ${secondaryColor}; font-size: 12px;
       }
       .enbuild-logo.active .icon { box-shadow: 0 0 8px rgba(255,255,255,0.5); }
 
-      /* When drawer collapses (narrow width), adjust layout */
       .MuiDrawer-paper[style*="width: 56px"] .enbuild-logo-container,
       .MuiDrawer-paper[style*="width: 48px"] .enbuild-logo-container,
       .MuiDrawer-paper.MuiDrawer-paperAnchorLeft:not(.MuiDrawer-docked):not([style*="width:"]) .enbuild-logo-container {
-          flex-direction: row !important; /* Keep as row when collapsed for horizontal arrangement of the two logos */
+          flex-direction: row !important;
           align-items: center !important;
-          gap: 10px !important; 
-          flex-wrap: wrap; /* Allow wrapping if space is too small */
+          gap: 10px !important;
+          flex-wrap: wrap;
       }
 
       .MuiDrawer-paper[style*="width: 56px"] .enbuild-logo,
       .MuiDrawer-paper[style*="width: 48px"] .enbuild-logo,
       .MuiDrawer-paper.MuiDrawer-paperAnchorLeft:not(.MuiDrawer-docked):not([style*="width:"]) .enbuild-logo {
-          flex-direction: column !important; /* Ensure column direction even when collapsed for icon above text */
+          flex-direction: column !important;
           align-items: center !important;
-          justify-content: center !important; /* Center content within each logo item */
-          margin: 0 !important; /* Remove any conflicting margins */
+          justify-content: center !important;
+          margin: 0 !important;
       }
 
       .MuiDrawer-paper[style*="width: 56px"] .enbuild-logo .text,
       .MuiDrawer-paper[style*="width: 48px"] .enbuild-logo .text,
       .MuiDrawer-paper.MuiDrawer-paperAnchorLeft:not(.MuiDrawer-docked):not([style*="width:"]) .enbuild-logo .text {
-          margin-top: 4px !important; /* Keep top margin for stacked text */
-          margin-left: 0 !important; /* Remove horizontal margin */
-          font-size: 10px; /* Smaller font size for collapsed state */
-          white-space: nowrap; /* Prevent text wrapping */
+          margin-top: 4px !important;
+          margin-left: 0 !important;
+          font-size: 10px;
+          white-space: nowrap;
       }
 
       /* Hide/Show menus based on mode */
       .enbuild-menu-container { display: none; }
-      /* Ensure that the default Headlamp menu items are hidden when enbuild-active is present */
       .MuiDrawer-paper.enbuild-active .MuiListItem-root:not(.enbuild-menu-item):not(.MuiListItemButton-root) {
         display: none !important;
       }
@@ -267,7 +261,7 @@ const injectTheme = ({
         display: block !important;
       }
 
-      /* Styles for the ThemeCustomizer component itself when rendered by Headlamp's plugin settings */
+      /* ThemeCustomizer Page Styling */
       .headlamp-plugin-settings #enbuild-custom-page,
       .headlamp-plugin-settings .MuiBox-root[width="50%"] {
         position: relative;
@@ -303,6 +297,7 @@ const injectTheme = ({
       }
     `,
   });
+
   document.head.appendChild(style);
 };
 
