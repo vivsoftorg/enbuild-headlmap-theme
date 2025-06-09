@@ -188,15 +188,20 @@ const injectTheme = ({
       .enbuild-menu-item .MuiListItemText-primary {
           color: ${secondaryColor} !important;
       }
-      .enbuild-menu-item:hover { background-color: ${secondaryColor} !important; }
-      .enbuild-menu-item:hover *,
-      .enbuild-menu-item:hover .MuiListItemIcon-root,
-      .enbuild-menu-item:hover .MuiListItemText-primary { color: ${primaryColor} !important; }
 
-      .enbuild-menu-item.active { background-color: ${secondaryColor} !important; }
-      .enbuild-menu-item.active *,
-      .enbuild-menu-item.active .MuiListItemIcon-root,
-      .enbuild-menu-item.active .MuiListItemText-primary { color: ${primaryColor} !important; }
+      .enbuild-menu-item:hover,
+.enbuild-menu-item.active,
+.enbuild-menu-item.Mui-selected {
+  background-color: transparent !important;
+}
+.enbuild-menu-item:hover *,
+.enbuild-menu-item.active *,
+.enbuild-menu-item.Mui-selected *,
+.enbuild-menu-item .MuiListItemIcon-root,
+.enbuild-menu-item .MuiListItemText-primary {
+  color: ${secondaryColor} !important;
+}
+
 
       /* Logo Container */
       .enbuild-logo-container {
