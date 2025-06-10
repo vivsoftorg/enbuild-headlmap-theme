@@ -1,10 +1,5 @@
 // EnBuild UI Plugin - Fixed Navigation Issues & Submenu Visibility
-import {
-  AppLogoProps,
-  ConfigStore,
-  registerAppLogo,
-  registerPluginSettings,
-} from '@kinvolk/headlamp-plugin/lib';
+import { ConfigStore, registerAppLogo, registerPluginSettings } from '@kinvolk/headlamp-plugin/lib';
 import {
   Box,
   Button,
