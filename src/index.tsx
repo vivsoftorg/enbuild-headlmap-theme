@@ -13,7 +13,16 @@ import {
   ListItemIcon,
   ListItemText,
 } from '@mui/material';
-import { Cpu, GitBranchPlus, LayoutDashboard, LayoutList, Settings, Store } from 'lucide-react';
+import {
+  ComputerDesktopIcon,
+  CodeBracketIcon,
+  ListBulletIcon,
+  BuildingStorefrontIcon,
+  CogIcon, // ✅ Added
+} from '@heroicons/react/24/outline';
+
+import { HomeIcon } from '@heroicons/react/24/solid';
+
 import React, { useEffect, useState, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import OverviewDemo from './pages/overview/overview';
@@ -64,22 +73,30 @@ const ConfigurationPagePlaceholder = () => (
 
 // ========================= CONSTANTS & CONFIG =========================
 const DEFAULTS = {
-  primaryColor: '#05A2C2', // Changed to match state property names
-  secondaryColor: '#ffffff', // Changed to match state property names
+  primaryColor: '#05A2C2',
+  secondaryColor: '#ffffff',
   font: 'Inter',
   logoURL: 'https://enbuild-docs.vivplatform.io/images/emma/enbuild-logo.png',
 };
 
 const FONTS = ['Inter', 'Arial', 'Roboto', 'Courier New', 'Georgia', 'Monospace', 'Verdana'];
 
-// Re-added 'Configuration' to MENU_ITEMS
+// ✅ Updated MENU_ITEMS with valid icons
 const MENU_ITEMS = [
-  { text: 'Overview', path: '/overview', icon: <LayoutDashboard size={20} /> },
-  { text: 'Pipelines', path: '/pipelines', icon: <LayoutList size={20} /> },
-  { text: 'Marketplace', path: '/marketplace', icon: <Store size={20} /> },
-  { text: 'Components', path: '/components', icon: <Cpu size={20} /> },
-  { text: 'Deployment Flows', path: '/deployment-flows', icon: <GitBranchPlus size={20} /> },
-  { text: 'Configuration', path: '/configuration', icon: <Settings size={20} /> }, // Added back
+  { text: 'Overview', path: '/overview', icon: <HomeIcon className="h-5 w-5" /> },
+  { text: 'Pipelines', path: '/pipelines', icon: <ListBulletIcon className="h-5 w-5" /> },
+  {
+    text: 'Marketplace',
+    path: '/marketplace',
+    icon: <BuildingStorefrontIcon className="h-5 w-5" />,
+  },
+  { text: 'Components', path: '/components', icon: <ComputerDesktopIcon className="h-5 w-5" /> },
+  {
+    text: 'Deployment Flows',
+    path: '/deployment-flows',
+    icon: <CodeBracketIcon className="h-5 w-5" />,
+  },
+  { text: 'Configuration', path: '/configuration', icon: <CogIcon className="h-5 w-5" /> },
 ];
 
 const store = new ConfigStore('enbuild-customiser-theme');
