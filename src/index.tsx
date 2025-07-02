@@ -82,21 +82,23 @@ const DEFAULTS = {
 const FONTS = ['Inter', 'Arial', 'Roboto', 'Courier New', 'Georgia', 'Monospace', 'Verdana'];
 
 // ✅ Updated MENU_ITEMS with valid icons
+const iconStyle = { width: 20, height: 20, display: 'block' };
+
 const MENU_ITEMS = [
-  { text: 'Overview', path: '/overview', icon: <HomeIcon className="h-5 w-5" /> },
-  { text: 'Pipelines', path: '/pipelines', icon: <ListBulletIcon className="h-5 w-5" /> },
+  { text: 'Overview', path: '/overview', icon: <HomeIcon style={iconStyle} /> },
+  { text: 'Pipelines', path: '/pipelines', icon: <ListBulletIcon style={iconStyle} /> },
   {
     text: 'Marketplace',
     path: '/marketplace',
-    icon: <BuildingStorefrontIcon className="h-5 w-5" />,
+    icon: <BuildingStorefrontIcon style={iconStyle} />,
   },
-  { text: 'Components', path: '/components', icon: <ComputerDesktopIcon className="h-5 w-5" /> },
+  { text: 'Components', path: '/components', icon: <ComputerDesktopIcon style={iconStyle} /> },
   {
     text: 'Deployment Flows',
     path: '/deployment-flows',
-    icon: <CodeBracketIcon className="h-5 w-5" />,
+    icon: <CodeBracketIcon style={iconStyle} />,
   },
-  { text: 'Configuration', path: '/configuration', icon: <CogIcon className="h-5 w-5" /> },
+  { text: 'Configuration', path: '/configuration', icon: <CogIcon style={iconStyle} /> },
 ];
 
 const store = new ConfigStore('enbuild-customiser-theme');
@@ -515,28 +517,27 @@ class NavigationManager {
     const drawer = document.querySelector('.MuiDrawer-paper');
     if (!drawer || drawer.querySelector('.enbuild-logo-container')) return false;
     // COMMENTED OUT: Logo container for EnBuild and Home
-    /*
-    const logoContainer = Object.assign(document.createElement('div'), {
-      className: 'enbuild-logo-container',
-      innerHTML: `
-        <div class="enbuild-logo custom" title="EnBuild UI">
-          <div class="icon">
-            <svg viewBox="0 0 24 24" width="32" height="32">
-              <path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z" fill="${DEFAULTS.primaryColor}"/>
-            </svg>
-          </div>
-          <div class="text">EnBuild</div>
-        </div>
-        <div class="enbuild-logo home active" title="Default UI">
-          <div class="icon">
-            <svg viewBox="0 0 24 24" width="32" height="32">
-              <path d="M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z" fill="${DEFAULTS.primaryColor}"/>
-            </svg>
-          </div>
-          <div class="text">Home</div>
-        </div>
-      `,
-    });
+    // const logoContainer = Object.assign(document.createElement('div'), {
+    //   className: 'enbuild-logo-container',
+    //   innerHTML: `
+    //   <div class="enbuild-logo custom" title="EnBuild UI">
+    //     <div class="icon">
+    //     <svg viewBox="0 0 24 24" width="32" height="32">
+    //       <path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z" fill="${DEFAULTS.primaryColor}"/>
+    //     </svg>
+    //     </div>
+    //     <div class="text">Enbuild</div>
+    //   </div>
+    //   <div class="enbuild-logo home active" title="Default UI">
+    //     <div class="icon">
+    //     <svg viewBox="0 0 24 24" width="32" height="32">
+    //       <path d="M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z" fill="${DEFAULTS.primaryColor}"/>
+    //     </svg>
+    //     </div>
+    //     <div class="text">Home</div>
+    //   </div>
+    //   `,
+    // });
 
     logoContainer.querySelector('.custom').addEventListener('click', e => {
       e.preventDefault();
@@ -553,7 +554,6 @@ class NavigationManager {
     });
 
     drawer.appendChild(logoContainer);
-    */
     // const logoContainer = Object.assign(document.createElement('div'), {
     //   className: 'enbuild-logo-container',
     //   innerHTML: `
