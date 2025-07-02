@@ -13,7 +13,16 @@ import {
   ListItemIcon,
   ListItemText,
 } from '@mui/material';
-import { Cpu, GitBranchPlus, LayoutDashboard, LayoutList, Settings, Store } from 'lucide-react';
+import {
+  ComputerDesktopIcon,
+  CodeBracketIcon,
+  ListBulletIcon,
+  BuildingStorefrontIcon,
+  CogIcon,
+} from '@heroicons/react/24/outline';
+
+import { HomeIcon } from '@heroicons/react/24/solid';
+
 import React, { useEffect, useState, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import OverviewDemo from './pages/overview/overview';
@@ -64,22 +73,31 @@ const ConfigurationPagePlaceholder = () => (
 
 // ========================= CONSTANTS & CONFIG =========================
 const DEFAULTS = {
-  primaryColor: '#05A2C2', // Changed to match state property names
-  secondaryColor: '#ffffff', // Changed to match state property names
+  primaryColor: '#05A2C2',
+  secondaryColor: '#ffffff',
   font: 'Inter',
   logoURL: 'https://enbuild-docs.vivplatform.io/images/emma/enbuild-logo.png',
 };
 
 const FONTS = ['Inter', 'Arial', 'Roboto', 'Courier New', 'Georgia', 'Monospace', 'Verdana'];
 
-// Re-added 'Configuration' to MENU_ITEMS
+const iconStyle = { width: 20, height: 20, display: 'block' };
+
 const MENU_ITEMS = [
-  { text: 'Overview', path: '/overview', icon: <LayoutDashboard size={20} /> },
-  { text: 'Pipelines', path: '/pipelines', icon: <LayoutList size={20} /> },
-  { text: 'Marketplace', path: '/marketplace', icon: <Store size={20} /> },
-  { text: 'Components', path: '/components', icon: <Cpu size={20} /> },
-  { text: 'Deployment Flows', path: '/deployment-flows', icon: <GitBranchPlus size={20} /> },
-  { text: 'Configuration', path: '/configuration', icon: <Settings size={20} /> }, // Added back
+  { text: 'Overview', path: '/overview', icon: <HomeIcon style={iconStyle} /> },
+  { text: 'Pipelines', path: '/pipelines', icon: <ListBulletIcon style={iconStyle} /> },
+  {
+    text: 'Marketplace',
+    path: '/marketplace',
+    icon: <BuildingStorefrontIcon style={iconStyle} />,
+  },
+  { text: 'Components', path: '/components', icon: <ComputerDesktopIcon style={iconStyle} /> },
+  {
+    text: 'Deployment Flows',
+    path: '/deployment-flows',
+    icon: <CodeBracketIcon style={iconStyle} />,
+  },
+  { text: 'Configuration', path: '/configuration', icon: <CogIcon style={iconStyle} /> },
 ];
 
 const store = new ConfigStore('enbuild-customiser-theme');
@@ -498,28 +516,27 @@ class NavigationManager {
     const drawer = document.querySelector('.MuiDrawer-paper');
     if (!drawer || drawer.querySelector('.enbuild-logo-container')) return false;
     // COMMENTED OUT: Logo container for EnBuild and Home
-    /*
-    const logoContainer = Object.assign(document.createElement('div'), {
-      className: 'enbuild-logo-container',
-      innerHTML: `
-        <div class="enbuild-logo custom" title="EnBuild UI">
-          <div class="icon">
-            <svg viewBox="0 0 24 24" width="32" height="32">
-              <path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z" fill="${DEFAULTS.primaryColor}"/>
-            </svg>
-          </div>
-          <div class="text">EnBuild</div>
-        </div>
-        <div class="enbuild-logo home active" title="Default UI">
-          <div class="icon">
-            <svg viewBox="0 0 24 24" width="32" height="32">
-              <path d="M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z" fill="${DEFAULTS.primaryColor}"/>
-            </svg>
-          </div>
-          <div class="text">Home</div>
-        </div>
-      `,
-    });
+    // const logoContainer = Object.assign(document.createElement('div'), {
+    //   className: 'enbuild-logo-container',
+    //   innerHTML: `
+    //   <div class="enbuild-logo custom" title="EnBuild UI">
+    //     <div class="icon">
+    //     <svg viewBox="0 0 24 24" width="32" height="32">
+    //       <path d="M2 20h20v-4H2v4zm2-3h2v2H4v-2zM2 4v4h20V4H2zm4 3H4V5h2v2zm-4 7h20v-4H2v4zm2-3h2v2H4v-2z" fill="${DEFAULTS.primaryColor}"/>
+    //     </svg>
+    //     </div>
+    //     <div class="text">Enbuild</div>
+    //   </div>
+    //   <div class="enbuild-logo home active" title="Default UI">
+    //     <div class="icon">
+    //     <svg viewBox="0 0 24 24" width="32" height="32">
+    //       <path d="M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z" fill="${DEFAULTS.primaryColor}"/>
+    //     </svg>
+    //     </div>
+    //     <div class="text">Home</div>
+    //   </div>
+    //   `,
+    // });
 
     logoContainer.querySelector('.custom').addEventListener('click', e => {
       e.preventDefault();
@@ -536,7 +553,6 @@ class NavigationManager {
     });
 
     drawer.appendChild(logoContainer);
-    */
     // const logoContainer = Object.assign(document.createElement('div'), {
     //   className: 'enbuild-logo-container',
     //   innerHTML: `
