@@ -81,7 +81,6 @@ const DEFAULTS = {
 
 const FONTS = ['Inter', 'Arial', 'Roboto', 'Courier New', 'Georgia', 'Monospace', 'Verdana'];
 
-// ✅ Updated MENU_ITEMS with valid icons
 const iconStyle = { width: 20, height: 20, display: 'block' };
 
 const MENU_ITEMS = [
