@@ -18,7 +18,7 @@ import {
   CodeBracketIcon,
   ListBulletIcon,
   BuildingStorefrontIcon,
-  CogIcon, // ✅ Added
+  CogIcon,
 } from '@heroicons/react/24/outline';
 
 import { HomeIcon } from '@heroicons/react/24/solid';
