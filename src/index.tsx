@@ -181,52 +181,99 @@ const injectTheme = ({
         background-color: ${primaryColor} !important;
       }
 
-      /* Drawer Navigation (Default Headlamp menus) */
-      .MuiDrawer-paper .MuiListItem-root,
+      /* Drawer Navigation (Default Headlamp menus) - Remove yellow background */
+      .MuiDrawer-paper .MuiListItem-root {
+        background-color: transparent !important;
+        color: ${secondaryColor} !important;
+      }
       .MuiDrawer-paper .MuiListItemText-primary,
-      .MuiDrawer-paper .MuiListItemIcon-root { color: ${secondaryColor} !important; }
+      .MuiDrawer-paper .MuiListItemIcon-root { 
+        color: ${secondaryColor} !important; 
+      }
 
-      /* Hover/Selected States - Submenu Styling Update */
+      /* Remove yellow background from MUI List Items */
+      .MuiListItem-root,
+      .MuiListItemButton-root,
+      .MuiMenuItem-root {
+        background-color: transparent !important;
+      }
+
+      /* Hover/Selected States - Remove yellow and set transparent */
       .MuiDrawer-paper .MuiListItem-root:hover,
-      .MuiDrawer-paper .MuiListItem-root.Mui-selected {
-        background-color: ${primaryColor} !important;
+      .MuiDrawer-paper .MuiListItem-root.Mui-selected,
+      .MuiDrawer-paper .MuiListItemButton-root:hover,
+      .MuiDrawer-paper .MuiListItemButton-root.Mui-selected {
+        background-color: rgba(255, 255, 255, 0.1) !important;
       }
       .MuiDrawer-paper .MuiListItem-root:hover *,
-      .MuiDrawer-paper .MuiListItem-root.Mui-selected * {
+      .MuiDrawer-paper .MuiListItem-root.Mui-selected *,
+      .MuiDrawer-paper .MuiListItemButton-root:hover *,
+      .MuiDrawer-paper .MuiListItemButton-root.Mui-selected * {
         color: ${secondaryColor} !important;
       }
 
-      /* Custom Menu */
-      .enbuild-menu-container { padding: 8px 0; margin-top: 60px; }
+      /* Custom Menu - Remove any default backgrounds */
+      .enbuild-menu-container { 
+        padding: 8px 0; 
+        margin-top: 60px; 
+        background-color: transparent !important;
+      }
       .enbuild-menu-item {
-        padding: 8px 16px; margin: 2px 8px; border-radius: 4px;
-        cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center;
+        padding: 8px 16px; 
+        margin: 2px 8px; 
+        border-radius: 4px;
+        cursor: pointer; 
+        transition: all 0.3s ease; 
+        display: flex; 
+        align-items: center;
         color: ${secondaryColor} !important;
+        background-color: transparent !important;
       }
       .enbuild-menu-item *,
       .enbuild-menu-item .MuiListItemIcon-root,
       .enbuild-menu-item .MuiListItemText-primary {
           color: ${secondaryColor} !important;
+          background-color: transparent !important;
       }
 
       .enbuild-menu-item:hover,
-.enbuild-menu-item.active,
-.enbuild-menu-item.Mui-selected {
-  background-color: transparent !important;
-}
-.enbuild-menu-item:hover *,
-.enbuild-menu-item.active *,
-.enbuild-menu-item.Mui-selected *,
-.enbuild-menu-item .MuiListItemIcon-root,
-.enbuild-menu-item .MuiListItemText-primary {
-  color: ${secondaryColor} !important;
-}
+      .enbuild-menu-item.active,
+      .enbuild-menu-item.Mui-selected {
+        background-color: rgba(255, 255, 255, 0.1) !important;
+      }
+      .enbuild-menu-item:hover *,
+      .enbuild-menu-item.active *,
+      .enbuild-menu-item.Mui-selected *,
+      .enbuild-menu-item .MuiListItemIcon-root,
+      .enbuild-menu-item .MuiListItemText-primary {
+        color: ${secondaryColor} !important;
+        background-color: transparent !important;
+      }
 
+      /* Override any Material-UI default yellow/warning colors */
+      .MuiDrawer-paper .MuiListItem-root.MuiListItem-button,
+      .MuiDrawer-paper .MuiListItemButton-root,
+      .MuiDrawer-paper .MuiButtonBase-root {
+        background-color: transparent !important;
+      }
+
+      /* Force transparent background on all list-related elements */
+      .MuiList-root,
+      .MuiList-root .MuiListItem-root,
+      .MuiList-root .MuiListItemButton-root,
+      .MuiDrawer-paper .MuiList-root,
+      .MuiDrawer-paper .MuiList-root .MuiListItem-root,
+      .MuiDrawer-paper .MuiList-root .MuiListItemButton-root {
+        background-color: transparent !important;
+      }
 
       /* Logo Container */
       .enbuild-logo-container {
-        position: sticky; bottom: 0; background-color: ${primaryColor};
-        border-top: 1px solid ${secondaryColor}33; padding: 16px;
+        position: sticky; 
+        bottom: 0; 
+        background-color: ${primaryColor};
+        border-top: 1px solid ${secondaryColor}33; 
+        padding: 16px;
         display: flex;
         justify-content: center;
         flex-direction: row;
@@ -236,20 +283,34 @@ const injectTheme = ({
         display: flex;
         flex-direction: column;
         align-items: center;
-        cursor: pointer; transition: all 0.2s ease;
+        cursor: pointer; 
+        transition: all 0.2s ease;
       }
-      .enbuild-logo:hover { opacity: 0.8; transform: scale(1.05); }
+      .enbuild-logo:hover { 
+        opacity: 0.8; 
+        transform: scale(1.05); 
+      }
       .enbuild-logo .icon {
-        width: 40px; height: 40px; background: white; border-radius: 4px;
-        display: flex; align-items: center; justify-content: center; padding: 4px;
+        width: 40px; 
+        height: 40px; 
+        background: white; 
+        border-radius: 4px;
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        padding: 4px;
       }
       .enbuild-logo .text {
         margin-top: 4px;
         margin-left: 0;
-        color: ${secondaryColor}; font-size: 12px;
+        color: ${secondaryColor}; 
+        font-size: 12px;
       }
-      .enbuild-logo.active .icon { box-shadow: 0 0 8px rgba(255,255,255,0.5); }
+      .enbuild-logo.active .icon { 
+        box-shadow: 0 0 8px rgba(255,255,255,0.5); 
+      }
 
+      /* Responsive logo container styles */
       .MuiDrawer-paper[style*="width: 56px"] .enbuild-logo-container,
       .MuiDrawer-paper[style*="width: 48px"] .enbuild-logo-container,
       .MuiDrawer-paper.MuiDrawer-paperAnchorLeft:not(.MuiDrawer-docked):not([style*="width:"]) .enbuild-logo-container {
@@ -308,11 +369,11 @@ const injectTheme = ({
       }
       .headlamp-plugin-settings .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline,
       .headlamp-plugin-settings .MuiInput-underline:hover:not(.Mui-disabled):before {
-          border-color: var(--lh-accent-color, ${DEFAULTS.primaryColor}) !important;
+          border-color: var(--lh-accent-color, ${primaryColor}) !important;
       }
       .headlamp-plugin-settings .Mui-focused .MuiOutlinedInput-notchedOutline,
       .headlamp-plugin-settings .MuiInput-underline:after {
-          border-color: var(--lh-accent-color, ${DEFAULTS.primaryColor}) !important;
+          border-color: var(--lh-accent-color, ${primaryColor}) !important;
       }
       .MuiInputBase-input[type="color"] {
         padding: 0 !important;
