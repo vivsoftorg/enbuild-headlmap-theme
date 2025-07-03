@@ -158,7 +158,7 @@ const injectTheme = ({
           color: ${secondaryColor} !important;
       }
       .MuiAppBar-root input[type="search"] {
-          background-color: transparent !important;
+          background-color: ${primaryColor} !important;
       }
 
       .MuiAppBar-root .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline,
@@ -172,6 +172,13 @@ const injectTheme = ({
       .MuiAppBar-root .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline,
       .MuiAppBar-root .MuiInput-underline:after {
         border-color: ${secondaryColor} !important;
+      }
+
+      /* Searchbar background (Headlamp uses .MuiInputBase-root for search) */
+      .MuiAppBar-root .MuiInputBase-root,
+      .MuiAppBar-root .MuiOutlinedInput-root,
+      .MuiAppBar-root .MuiInputBase-root.MuiOutlinedInput-root {
+        background-color: ${primaryColor} !important;
       }
 
       /* Drawer Navigation (Default Headlamp menus) */
