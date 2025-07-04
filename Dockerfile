@@ -11,7 +11,7 @@ RUN npm install
 RUN npm install -g @kinvolk/headlamp-plugin
 RUN headlamp-plugin build /headlamp-plugins/${PLUGIN}
 RUN mkdir -p /headlamp-plugins/build/${PLUGIN}
-RUN headlamp-plugin extract /headlamp-plugins/${PLUGIN} /headlamp-plugins/build/${PLUGIN}
+RUN headlamp-plugin extract /headlamp-plugins/${PLUGIN} /headlamp-plugins/build/
 
 # Stage 1: Final image with Alpine Linux
 FROM alpine:3.22.0
@@ -20,7 +20,7 @@ FROM alpine:3.22.0
 RUN addgroup -S headlamp && adduser -S headlamp -G headlamp
 
 # Copy built plugin from the previous stage
-COPY --from=builder /headlamp-plugins/build/${PLUGIN}/ /plugins/
+COPY --from=builder /headlamp-plugins/build/${PLUGIN} /plugins/
 COPY --from=knrt10/headlamp-plugins-test:latest /plugins/dynamic-clusters /plugins/dynamic-clusters
 COPY --from=knrt10/headlamp-plugins-test:latest /plugins/cluster-chooser /plugins/cluster-chooser
 
