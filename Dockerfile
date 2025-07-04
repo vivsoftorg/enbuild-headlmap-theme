@@ -37,6 +37,5 @@ LABEL org.opencontainers.image.source=https://github.com/vivsoftorg/enbuild-head
       org.opencontainers.image.url="https://github.com/vivsoftorg/enbuild-headlamp-theme" \
       org.opencontainers.image.authors="Juned Memon <junaid181813@gmail.com>"
 
-USER headlamp
 
 CMD ["sh", "-c", "echo Plugins installed at /plugins/:; ls /plugins/"]
